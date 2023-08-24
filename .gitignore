@@ -51,5 +51,5 @@ rsconnect/
 # ignore data folder
 data/
 
-# ignore output folder
-output/
+# ignore figures folder
+figures/
