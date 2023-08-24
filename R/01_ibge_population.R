@@ -1,4 +1,6 @@
 
+if (!dir.exists("data/raw/ibge")){dir.create("data/raw/ibge")}
+# Add data:
 # IBGE population estimates
 # https://www.ibge.gov.br/en/statistics/social/18448-population-estimates.html?=&t=downloads (1 June 2022)
 

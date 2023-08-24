@@ -1,10 +1,17 @@
 
-# Model, figure and table scripts can be run independently using the provided final data package PASTE ZENODO LINK
+# NOTE: Users can move directly to the models (10_run_spatial_models.R and herein sourced 11_lndetPaceBarry.R and 12_run_*.R), 
+# as 10_run_spatial_models.R will automatically download ready-to-use datasets from ZENODO-LINK-HERE and store it in ./model_input and ./W.
 
 window_yrs <- 5 # set window for calculation of average annual growth rates, main model uses 5 years
 from_yr <- 2005
 to_yr <- 2015
 knn_set <- 5 # set k for k-nearest neighbours weights matrix, main model uses k=5 
+
+if (!dir.exists("data")){dir.create("data")}
+if (!dir.exists("data/raw")){dir.create("data/raw")}
+if (!dir.exists("data/intermediary")){dir.create("data/intermediary")}
+if (!dir.exists("data/model_input")){dir.create("data/model_input")}
+if (!dir.exists("data/W")){dir.create("data/W")}
 
 # load data ---------------------------------------------------------------
 
@@ -112,8 +119,9 @@ M <- M %>%
   dplyr::mutate(pop_growth = lead(pop_growth, window_yrs)) %>%
   dplyr::ungroup()
 
-# take logs (where needed)
+# take logs (change form GVA agriculure = 0 to 1 to enable taking logs)
 M <- M %>% 
+  dplyr::mutate(gva_agri = ifelse(gva_agri == 0, 1, gva_agri)) %>%
   dplyr::mutate(gdp_total_log = log(gdp_total),
                 gdp_capita_log = log(gdp_capita),
                 gva_agri_log = log(gva_agri),
@@ -177,7 +185,7 @@ X <- M %>%
   dplyr::bind_cols(X_mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_gdp_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_gdp_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 # Economic growth model pooled (dependent is 5y average annual GDP per capita growth)
 Y <- as.numeric(M$gdp_capita_growth)
@@ -202,7 +210,7 @@ X <- M %>%
   dplyr::select(-mining_industrial, -mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_gdp_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_gdp_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 
 # Relative forest loss model yearly (dependent is ha per km2 of forest in municipality)
@@ -217,7 +225,7 @@ X <- M %>%
   dplyr::bind_cols(X_mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_def_rel_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_def_rel_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 # Relative forest loss model pooled (dependent is ha per km2 of forest in municipality)
 Y <- as.numeric(M$natural_forest_loss_ha_km2)
@@ -237,7 +245,7 @@ X <- M %>%
   dplyr::select(-mining_industrial, -mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_def_rel_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_def_rel_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 
 # Absolute forest loss model yearly (dependent is annual deforestation absolute ha)
@@ -252,7 +260,7 @@ X <- M %>%
   dplyr::bind_cols(X_mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_def_abs_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_def_abs_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 # Absolute forest loss model pooled (dependent is annual deforestation absolute ha)
 Y <- as.numeric(M$natural_forest_loss)
@@ -272,12 +280,12 @@ X <- M %>%
   dplyr::select(-mining_industrial, -mining_garimpo) %>%
   as.matrix()
 YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/YX_def_abs_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
+write.csv(YX, file = paste0("./data/model_input/YX_def_abs_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
 
 
 # spatial weights matrix --------------------------------------------------
 
-if(! file.exists(paste0("./data/W/W_k", knn_set, ".csv"))){
+if(! file.exists(paste0("./data/W/W_k", knn_set, ".RData"))){
   
   library(spdep)
   
@@ -291,7 +299,8 @@ if(! file.exists(paste0("./data/W/W_k", knn_set, ".csv"))){
   W_k <- spdep::knearneigh(coords_sf, k = knn_set)
   knear_nb <- spdep::knn2nb(W_k)
   W_k <- spdep::nb2mat(knear_nb)
-  write.table(W_k, file = paste0("./data/W/W_k", knn_set, ".csv"), row.names = FALSE, col.names = W_base$code_mn, sep = ",")
+  
+  save(W_k, file = paste0("./data/W/W_k", knn_set, ".RData"))
 }
   
 

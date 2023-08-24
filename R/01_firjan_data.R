@@ -1,10 +1,11 @@
 
-# https://www.firjan.com.br/ifdm/downloads/ (1 June 2022)
 
 library(readxl)
 library(dplyr)
 library(tidyr)
 
+if (!dir.exists("data/raw/firjan")){dir.create("data/raw/firjan")}
+# add data from https://www.firjan.com.br/ifdm/downloads/ (1 June 2022)
 
 # load selected municipalities from base municipality layers
 load("data/raw/geobr/selected_mun.Rdata")

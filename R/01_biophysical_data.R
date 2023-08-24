@@ -9,6 +9,9 @@ library(exactextractr)
 library(stringi)
 library(cruts)
 
+if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr")}
+if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS")}
+
 # elevation ---------------------------------------------------------------
 
 if(!file.exists("data/intermediary/elevation_mean.Rdata")){

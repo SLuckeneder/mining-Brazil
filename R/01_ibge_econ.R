@@ -1,13 +1,15 @@
 
+if (!dir.exists("data/raw/ibge")){dir.create("data/raw/ibge")}
+# Add data:
+# IBGE Gross Domestic Product of Municipalities
+# https://www.ibge.gov.br/en/statistics/economic/national-accounts/19567-gross-domestic-product-of-municipalities.html?=&t=downloads (1 June 2022)
+
 library(readxl)
 library(dplyr)
 library(tidyr)
 
 # load selected municipalities from base municipality layers
 load("data/raw/geobr/selected_mun.Rdata")
-
-# IBGE Gross Domestic Product of Municipalities
-# https://www.ibge.gov.br/en/statistics/economic/national-accounts/19567-gross-domestic-product-of-municipalities.html?=&t=downloads (1 June 2022)
 
 if(!file.exists(paste0("data/intermediary/ibge_econ.Rdata"))){
   

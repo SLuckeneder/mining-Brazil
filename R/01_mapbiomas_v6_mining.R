@@ -1,4 +1,6 @@
 
+if (!dir.exists("data/raw/MapBiomas-v6")){dir.create("data/raw/MapBiomas-v6")}
+# Add data:
 # MapBiomas municipality statistics downloaded from https://mapbiomas.org/en/statistics (1 June 2022)
 
 library(sf)
