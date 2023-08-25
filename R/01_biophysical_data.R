@@ -3,10 +3,13 @@ library(dplyr)
 library(tidyr)
 library(terra)
 library(sf)
+library(stars)
 library(elevatr)
 library(exactextractr)
 library(stringi)
 library(cruts)
+library(rvest)
+library(R.utils)
 
 if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr", recursive = TRUE)}
 if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS", recursive = TRUE)}
@@ -42,9 +45,26 @@ if(!file.exists(elevation_file)){
 
 sf::sf_use_s2(FALSE) # turn off the s2 processing, otherwise error from intersecting geometries occurs from 2010 data
 
-if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
+prec_file <- "data/intermediary/cruTS_2000_2020.Rdata"
+dir.create(dirname(prec_file), recursive = TRUE, showWarnings = FALSE)
+if(!file.exists(prec_file)){
 
   # download cruTS Dat.nc from https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.05/cruts.2103051243.v4.05/pre/
+  #Grab filenames from separate URL
+  cru_url <- "https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.05/cruts.2103051243.v4.05/pre/"
+  helplinks <- read_html(cru_url) %>% html_nodes("a") %>% html_text(trim = T)
+  helplinks <- helplinks[grepl(".nc.gz", helplinks)]
+  helplinks <- helplinks[grepl("1991|2001|2011", helplinks)]
+  for (f in helplinks) {
+    cru_file <- paste0("./data/raw/cruTS/", f, sep = "")
+    dir.create(dirname(cru_file), recursive = TRUE, showWarnings = FALSE)
+    if(!file.exists(stri_replace_all(cru_file, fixed = ".gz", replacement = ""))){
+      options(timeout = 500)
+      download.file(paste(cru_url, f, sep = ""), cru_file)
+      gunzip(cru_file)
+      options(timeout = 60)
+    }
+  }
 
   store <- list()
   years <- c(2000:2020)
@@ -57,11 +77,12 @@ if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
                        timeRange = c("1991-01-01","1992-01-01"),
                        type = "stack")
 
+
   cat("Processing cruTS...")
   for (yr in seq_along(years)){
 
     # Brazil base map
-    base_mun <- sf::read_sf(paste0("data/raw/geobr/base_mun_", years_mod[yr], ".shp"))
+    base_mun <- sf::read_sf(paste0("data/raw/geobr/base_mun_", years_mod[yr], ".gpkg"))
     base_mun <- sf::st_transform(base_mun, crs = sf::st_crs(temp))
 
     cat("\n", years[yr], "...\n")
@@ -130,12 +151,12 @@ if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
   cruTS_data <- do.call(rbind,store)
   summary(cruTS_data)
 
-  save(cruTS_data, file = "data/intermediary/cruTS_2000_2020.Rdata")
+  save(cruTS_data, file = prec_file)
   
   
 
 } else {
-  load("data/intermediary/cruTS_2000_2020.Rdata")
+  load(prec_file)
 }
 
 sf::sf_use_s2(TRUE)
