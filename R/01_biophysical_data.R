@@ -1,7 +1,7 @@
 
 library(dplyr)
 library(tidyr)
-library(raster)
+library(terra)
 library(sf)
 library(elevatr)
 library(exactextractr)
@@ -13,7 +13,9 @@ if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS", recursive = TRUE
 
 # elevation ---------------------------------------------------------------
 
-if(!file.exists("data/intermediary/elevation_mean.Rdata")){
+elevation_file <- "data/intermediary/elevation_mean.Rdata"
+dir.create(dirname(elevation_file), recursive = TRUE, showWarnings = FALSE)
+if(!file.exists(elevation_file)){
   
   # load national and municipality base layer
   base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.gpkg")
@@ -23,34 +25,15 @@ if(!file.exists("data/intermediary/elevation_mean.Rdata")){
   
   cat("downloading elevation data...")
   elevation_data <- elevatr::get_elev_raster(base_nat, z = 5)
-  rr <- raster::crop(elevation_data, base_nat)
-  cat("rasterToPolygons...")
-  rp <- raster::rasterToPolygons(rr)
-  rsf <- sf::st_as_sf(rp)
-  colnames(rsf) <- c("value", "geometry")
-  rm(rr, rp); gc()
-  # plot(sf::st_centroid(rsf))
+  cat("aggregating elevation to municipality level by mean...")
+  elevation_mean <- exactextractr::exact_extract(elevation_data, base_mun, 'mean', progress = TRUE)
   
-  # remove large ocean areas (< -500m) to reduce object size
-  rsf <- rsf %>% dplyr::filter(value > -500)
-  
-  cat("aggregate to municipalities...")
-  elev_dat <- sf::st_join(base_mun, rsf, join = st_intersects)
-  colnames(elev_dat) <- c("code_mn", "name_mn", "cod_stt", "abbrv_s", "geometry", "value")
-  rm(rsf); gc()
-  
-  elev_dat <- elev_dat %>% 
-    sf::st_drop_geometry() %>%
-    dplyr::group_by(code_mn) %>%
-    dplyr::summarise(elevation = mean(value)) 
-  
-  # plot(dplyr::left_join(base_mun, elev_dat) %>% dplyr::select(elevation))
-  
-  save(elev_dat, file = "data/intermediary/elevation_mean.Rdata")
+  elev_dat <- mutate(base_mun, elevation = elevation_mean)
+  save(elev_dat, file = elevation_file)
   cat("done. \n")
   
 } else {
-  load("data/intermediary/elevation_mean.Rdata")
+  load(elevation_file)
 }
 
 
