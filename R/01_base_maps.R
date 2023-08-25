@@ -6,7 +6,7 @@ library(sf)
 library(dplyr)
 library(tidyr)
 
-if (!dir.exists("data/raw/geobr")){dir.create("data/raw/geobr")}
+if (!dir.exists("data/raw/geobr")){dir.create("data/raw/geobr", recursive = TRUE)}
 
 # municipalities ----------------------------------------------------------
 
