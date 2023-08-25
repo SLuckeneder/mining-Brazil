@@ -4,21 +4,20 @@ library(tidyr)
 library(raster)
 library(sf)
 library(elevatr)
-
 library(exactextractr)
 library(stringi)
 library(cruts)
 
-if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr")}
-if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS")}
+if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr", recursive = TRUE)}
+if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS", recursive = TRUE)}
 
 # elevation ---------------------------------------------------------------
 
 if(!file.exists("data/intermediary/elevation_mean.Rdata")){
   
   # load national and municipality base layer
-  base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.shp")
-  base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.shp")
+  base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.gpkg")
+  base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
   base_nat <- sf::st_transform(base_nat, crs = sf::st_crs("+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs"))
   base_mun <- sf::st_transform(base_mun, crs = sf::st_crs("+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs"))
   
