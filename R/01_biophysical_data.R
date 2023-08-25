@@ -123,15 +123,15 @@ if(!file.exists(prec_file)){
         # dplyr::mutate(precip_norm = (precip_average - mean(precip_average, na.rm = TRUE))/sd(precip_average, na.rm = TRUE))
     }
 
-    yr_dat <- sf::st_join(yr_dat, sf::st_centroid(base_mun) %>% dplyr::select(code_mn), join = st_nearest_feature) %>% dplyr::select(-id)
-    yr_dat <- yr_dat %>% dplyr::filter(!is.na(code_mn))
+    yr_dat <- sf::st_join(yr_dat, sf::st_centroid(base_mun) %>% dplyr::select(code_muni), join = st_nearest_feature) %>% dplyr::select(-id)
+    yr_dat <- yr_dat %>% dplyr::filter(!is.na(code_muni))
     
     # take mean if multiple polygons assigned to same municipality
-    # check <- yr_dat[duplicated(yr_dat$code_mn),]
-    # check <- yr_dat %>% dplyr::filter(code_mn %in% unique(check$code_mn))
+    # check <- yr_dat[duplicated(yr_dat$code_muni),]
+    # check <- yr_dat %>% dplyr::filter(code_muni %in% unique(check$code_muni))
     yr_dat <- yr_dat %>% 
       sf::st_drop_geometry() %>%
-      dplyr::group_by(code_mn) %>%
+      dplyr::group_by(code_muni) %>%
       dplyr::summarise(precip_average = mean(precip_average)) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(precip_norm = (precip_average - mean(precip_average, na.rm = TRUE))/sd(precip_average, na.rm = TRUE))
