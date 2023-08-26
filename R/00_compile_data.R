@@ -33,7 +33,7 @@ source("R/01_firjan_data.R") # Education score
 
 # create matching IDs
 mine_mun_panel <- mine_mun_panel %>% 
-  dplyr::rename(cod_municipio_long = code_mn) %>%
+  dplyr::rename(cod_municipio_long = code_muni) %>%
   dplyr::mutate(cod_municipio = substr(cod_municipio_long, 3, 7)) %>%
   dplyr::mutate(unid = paste0(cod_municipio_long, "_", year))
 
@@ -41,12 +41,12 @@ mapbiomas_data <- mapbiomas_data %>%
   dplyr::mutate(unid = paste0(geo_code, "_", year))
 
 cruTS_data <- cruTS_data %>% 
-  dplyr::mutate(unid = paste0(code_mn, "_", year)) %>%
-  dplyr::filter(code_mn %in% selected_mun)
+  dplyr::mutate(unid = paste0(code_muni, "_", year)) %>%
+  dplyr::filter(code_muni %in% selected_mun)
 
 elev_dat <- elev_dat %>%
-  dplyr::mutate(code_mn = as.character(code_mn)) %>% 
-  dplyr::filter(code_mn %in% selected_mun)
+  dplyr::mutate(code_muni = as.character(code_muni)) %>% 
+  dplyr::filter(code_muni %in% selected_mun)
 
 # merge data --------------------------------------------------------------
 
@@ -54,12 +54,12 @@ M <- ibge_pop %>%
   dplyr::left_join(ibge_econ %>% dplyr::select(-year, -cod_municipio, -cod_municipio_long, -tax), by = "unid") %>%
   dplyr::left_join(mine_mun_panel %>% dplyr::select(unid, mining_industrial, mining_garimpo, mining), by = "unid") %>%
   dplyr::left_join(mapbiomas_data %>% dplyr::select(-year, -geo_code), by = "unid") %>%
-  dplyr::left_join(cruTS_data %>% dplyr::select(-year, -code_mn), by = "unid") %>%
-  dplyr::left_join(elev_dat, by = c("cod_municipio_long" = "code_mn"))
+  dplyr::left_join(cruTS_data %>% dplyr::select(-year, -code_muni), by = "unid") %>%
+  dplyr::left_join(elev_dat, by = c("cod_municipio_long" = "code_muni"))
 
 # add FIRJAN educ data, which has no 7th digit in ID (which is not a problem, because IDs are still unique)
-M <- M %>% dplyr::mutate("code_mn_6" = as.numeric(substr(cod_municipio_long, 1, 6))) %>%
-  dplyr::mutate(unid = paste(code_mn_6, year, sep = "_")) %>%
+M <- M %>% dplyr::mutate("code_muni_6" = as.numeric(substr(cod_municipio_long, 1, 6))) %>%
+  dplyr::mutate(unid = paste(code_muni_6, year, sep = "_")) %>%
   dplyr::left_join(firjan_educ %>% dplyr::select(unid, educ), by = "unid")
 
 # arrange and clean data ---------------------------------------------------
@@ -67,7 +67,7 @@ M <- M %>% dplyr::mutate("code_mn_6" = as.numeric(substr(cod_municipio_long, 1, 
 # arrange by year and municipality ID
 M <- M %>% dplyr::arrange(year, cod_municipio_long) %>%
   dplyr::filter(year %in% c(from_yr:(to_yr+window_yrs))) %>%
-  dplyr::select(-codigo_uf, -cod_municipio, -nome_munic, -unid, -cod_reg, -name_reg, -cod_uf, -name_uf, -code_mn_6) %>%
+  dplyr::select(-codigo_uf, -cod_municipio, -nome_munic, -unid, -cod_reg, -name_reg, -cod_uf, -name_uf, -code_muni_6) %>%
   dplyr::select(3, 5, 4, 1, 2, 35, 110, 6:34, 36:109)
 
 # remove 1 municipality where there is no landcover data
@@ -291,8 +291,8 @@ if(! file.exists(paste0("./data/W/W_k", knn_set, ".RData"))){
   
   # subset to relevant municipalities and order in the same way as Y and X
   W_base <- base_mun %>%
-    dplyr::filter(code_mn %in% unique(M$cod_municipio_long)) %>%
-    dplyr::arrange(code_mn)
+    dplyr::filter(code_muni %in% unique(M$cod_municipio_long)) %>%
+    dplyr::arrange(code_muni)
   
   # Create W matrix: neighbours (see https://cran.r-project.org/web/packages/spdep/vignettes/nb_sf.html
   coords_sf <-  sf::st_coordinates(sf::st_centroid(W_base))
