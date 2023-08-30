@@ -1,57 +1,42 @@
 
 library(dplyr)
 library(tidyr)
-library(raster)
+library(terra)
 library(sf)
+library(stars)
 library(elevatr)
-
 library(exactextractr)
 library(stringi)
 library(cruts)
+library(rvest)
+library(R.utils)
 
-if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr")}
-if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS")}
+if (!dir.exists("data/raw/elevatr")){dir.create("data/raw/elevatr", recursive = TRUE)}
+if (!dir.exists("data/raw/cruTS")){dir.create("data/raw/cruTS", recursive = TRUE)}
 
 # elevation ---------------------------------------------------------------
 
-if(!file.exists("data/intermediary/elevation_mean.Rdata")){
+elevation_file <- "data/intermediary/elevation_mean.Rdata"
+dir.create(dirname(elevation_file), recursive = TRUE, showWarnings = FALSE)
+if(!file.exists(elevation_file)){
   
   # load national and municipality base layer
-  base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.shp")
-  base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.shp")
+  base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.gpkg")
+  base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
   base_nat <- sf::st_transform(base_nat, crs = sf::st_crs("+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs"))
   base_mun <- sf::st_transform(base_mun, crs = sf::st_crs("+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs"))
   
   cat("downloading elevation data...")
   elevation_data <- elevatr::get_elev_raster(base_nat, z = 5)
-  rr <- raster::crop(elevation_data, base_nat)
-  cat("rasterToPolygons...")
-  rp <- raster::rasterToPolygons(rr)
-  rsf <- sf::st_as_sf(rp)
-  colnames(rsf) <- c("value", "geometry")
-  rm(rr, rp); gc()
-  # plot(sf::st_centroid(rsf))
+  cat("aggregating elevation to municipality level by mean...")
+  elevation_mean <- exactextractr::exact_extract(elevation_data, base_mun, 'mean', progress = TRUE)
   
-  # remove large ocean areas (< -500m) to reduce object size
-  rsf <- rsf %>% dplyr::filter(value > -500)
-  
-  cat("aggregate to municipalities...")
-  elev_dat <- sf::st_join(base_mun, rsf, join = st_intersects)
-  colnames(elev_dat) <- c("code_mn", "name_mn", "cod_stt", "abbrv_s", "geometry", "value")
-  rm(rsf); gc()
-  
-  elev_dat <- elev_dat %>% 
-    sf::st_drop_geometry() %>%
-    dplyr::group_by(code_mn) %>%
-    dplyr::summarise(elevation = mean(value)) 
-  
-  # plot(dplyr::left_join(base_mun, elev_dat) %>% dplyr::select(elevation))
-  
-  save(elev_dat, file = "data/intermediary/elevation_mean.Rdata")
+  elev_dat <- mutate(base_mun, elevation = elevation_mean)
+  save(elev_dat, file = elevation_file)
   cat("done. \n")
   
 } else {
-  load("data/intermediary/elevation_mean.Rdata")
+  load(elevation_file)
 }
 
 
@@ -60,9 +45,26 @@ if(!file.exists("data/intermediary/elevation_mean.Rdata")){
 
 sf::sf_use_s2(FALSE) # turn off the s2 processing, otherwise error from intersecting geometries occurs from 2010 data
 
-if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
+prec_file <- "data/intermediary/cruTS_2000_2020.Rdata"
+dir.create(dirname(prec_file), recursive = TRUE, showWarnings = FALSE)
+if(!file.exists(prec_file)){
 
   # download cruTS Dat.nc from https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.05/cruts.2103051243.v4.05/pre/
+  #Grab filenames from separate URL
+  cru_url <- "https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.05/cruts.2103051243.v4.05/pre/"
+  helplinks <- read_html(cru_url) %>% html_nodes("a") %>% html_text(trim = T)
+  helplinks <- helplinks[grepl(".nc.gz", helplinks)]
+  helplinks <- helplinks[grepl("1991|2001|2011", helplinks)]
+  for (f in helplinks) {
+    cru_file <- paste0("./data/raw/cruTS/", f, sep = "")
+    dir.create(dirname(cru_file), recursive = TRUE, showWarnings = FALSE)
+    if(!file.exists(stri_replace_all(cru_file, fixed = ".gz", replacement = ""))){
+      options(timeout = 500)
+      download.file(paste(cru_url, f, sep = ""), cru_file)
+      gunzip(cru_file)
+      options(timeout = 60)
+    }
+  }
 
   store <- list()
   years <- c(2000:2020)
@@ -75,11 +77,12 @@ if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
                        timeRange = c("1991-01-01","1992-01-01"),
                        type = "stack")
 
+
   cat("Processing cruTS...")
   for (yr in seq_along(years)){
 
     # Brazil base map
-    base_mun <- sf::read_sf(paste0("data/raw/geobr/base_mun_", years_mod[yr], ".shp"))
+    base_mun <- sf::read_sf(paste0("data/raw/geobr/base_mun_", years_mod[yr], ".gpkg"))
     base_mun <- sf::st_transform(base_mun, crs = sf::st_crs(temp))
 
     cat("\n", years[yr], "...\n")
@@ -120,15 +123,15 @@ if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
         # dplyr::mutate(precip_norm = (precip_average - mean(precip_average, na.rm = TRUE))/sd(precip_average, na.rm = TRUE))
     }
 
-    yr_dat <- sf::st_join(yr_dat, sf::st_centroid(base_mun) %>% dplyr::select(code_mn), join = st_nearest_feature) %>% dplyr::select(-id)
-    yr_dat <- yr_dat %>% dplyr::filter(!is.na(code_mn))
+    yr_dat <- sf::st_join(yr_dat, sf::st_centroid(base_mun) %>% dplyr::select(code_muni), join = st_nearest_feature) %>% dplyr::select(-id)
+    yr_dat <- yr_dat %>% dplyr::filter(!is.na(code_muni))
     
     # take mean if multiple polygons assigned to same municipality
-    # check <- yr_dat[duplicated(yr_dat$code_mn),]
-    # check <- yr_dat %>% dplyr::filter(code_mn %in% unique(check$code_mn))
+    # check <- yr_dat[duplicated(yr_dat$code_muni),]
+    # check <- yr_dat %>% dplyr::filter(code_muni %in% unique(check$code_muni))
     yr_dat <- yr_dat %>% 
       sf::st_drop_geometry() %>%
-      dplyr::group_by(code_mn) %>%
+      dplyr::group_by(code_muni) %>%
       dplyr::summarise(precip_average = mean(precip_average)) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(precip_norm = (precip_average - mean(precip_average, na.rm = TRUE))/sd(precip_average, na.rm = TRUE))
@@ -148,12 +151,12 @@ if(!file.exists("data/intermediary/cruTS_2000_2020.Rdata")){
   cruTS_data <- do.call(rbind,store)
   summary(cruTS_data)
 
-  save(cruTS_data, file = "data/intermediary/cruTS_2000_2020.Rdata")
+  save(cruTS_data, file = prec_file)
   
   
 
 } else {
-  load("data/intermediary/cruTS_2000_2020.Rdata")
+  load(prec_file)
 }
 
 sf::sf_use_s2(TRUE)

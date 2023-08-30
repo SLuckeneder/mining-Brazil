@@ -6,12 +6,14 @@ library(tidyr)
 
 if (!dir.exists("data/raw/firjan")){dir.create("data/raw/firjan")}
 # add data from https://www.firjan.com.br/ifdm/downloads/ (1 June 2022)
+firjan_url <- "https://www.firjan.com.br/data/files/5B/F3/48/87/F1B8461049FF6646A8A809C2/Evolu__o%20do%20IFDM%20Educa__o%20-%202005%20a%202016.xlsx"
+download.file(firjan_url, destfile = "data/raw/firjan/firjan_educ_2005_2016.xlsx")
 
 # load selected municipalities from base municipality layers
 load("data/raw/geobr/selected_mun.Rdata")
 
-
-if(!file.exists(paste0("data/intermediary/firjan_educ_2005_2016.Rdata"))){
+firjan_file <- "data/intermediary/firjan_educ_2005_2016.Rdata"
+if(!file.exists(firjan_file)){
   
   # read data ---------------------------------------------------------------
   
@@ -33,8 +35,8 @@ if(!file.exists(paste0("data/intermediary/firjan_educ_2005_2016.Rdata"))){
     dplyr::filter(cod_municipio_long %in% substr(selected_mun, 1, 6)) %>%
     dplyr::mutate(educ = as.numeric(educ))
   
-  save(firjan_educ, file = "data/intermediary/firjan_educ_2005_2016.Rdata")
+  save(firjan_educ, file = firjan_file)
   
 } else {
-  load("data/intermediary/firjan_educ_2005_2016.Rdata")
+  load(firjan_file)
 }
