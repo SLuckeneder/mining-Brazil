@@ -17,6 +17,7 @@ if(!file.exists(paste0("data/raw/geobr/selected_mun.Rdata"))){source("R/01_base_
 load("data/raw/geobr/selected_mun.Rdata")
 
 # World Bank GDP deflator
+if(! file.exists("data/raw/worldbank/wb_GDP_deflator.csv")){source("R/01_worldbank_data.R")}
 GDP_deflator <- read.csv("data/raw/worldbank/wb_GDP_deflator.csv", skip = 4) %>%
   dplyr::filter(Country.Name == "Brazil") %>%
   dplyr::select(-c(1:4)) %>%
@@ -28,6 +29,7 @@ GDP_deflator <- GDP_deflator %>%
   dplyr::rename(gdp_deflator = V1) 
 
 # World Bank commodity price index
+if(! file.exists("data/raw/worldbank/wb_commodity_prices.xlsx")){source("R/01_worldbank_data.R")}
 wb_commodity_prices <- readxl::read_excel("data/raw/worldbank/wb_commodity_prices.xlsx", sheet = "Monthly Indices", skip = 9) 
 colnames(wb_commodity_prices)[1] <- "year_month"
 wb_commodity_prices <- wb_commodity_prices%>%
