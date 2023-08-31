@@ -40,9 +40,8 @@ mining_data <- base_mun %>%
   dplyr::left_join(mining_growth) 
 
 # legal Amazon
-# download and save in data/raw/ibge/legal_amazon/
-# https://www.ibge.gov.br/en/geosciences/environmental-information/vegetation/17927-legal-amazon.html?=&t=acesso-ao-produto
-legal_amazon <- sf::read_sf("data/raw/ibge/legal_amazon/Amazonia_Legal_2020.shp") %>%
+if(! file.exists("data/raw/ibge/legal_amazon/Amazonia_Legal_2020.gpkg")){source("R/01_ibge_amazon.R")}
+legal_amazon <- sf::read_sf("data/raw/ibge/legal_amazon/Amazonia_Legal_2020.gpkg") %>%
   sf::st_set_crs(sf::st_crs(mining_data))
 
 # no of mining municipalities

@@ -29,6 +29,8 @@ source("R/01_ibge_econ.R") # GVA in agriculture, GVA in industry, GVA in service
 
 source("R/01_firjan_data.R") # Education score
 
+source("R/01_ibge_amazon.R") # Legal Amazon borders for Figure 1
+
 source("R/01_worldbank_data.R") # WB GDP deflator and commodity prices for Figure 2
 
 # prepare for merging the data --------------------------------------------
