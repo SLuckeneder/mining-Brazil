@@ -1,23 +1,28 @@
-library(readxl)
-library(dplyr)
-library(tidyr)
+
 
 if (!dir.exists("data/raw/ibge")){dir.create("data/raw/ibge")}
-# Add data:
-# IBGE Gross Domestic Product of Municipalities
-# https://www.ibge.gov.br/en/statistics/economic/national-accounts/19567-gross-domestic-product-of-municipalities.html?=&t=downloads (1 June 2022)
-download.file("https://ftp.ibge.gov.br/Pib_Municipios/2020/base/base_de_dados_2002_2009_xls.zip", destfile = "data/raw/ibge/base_de_dados_2002_2009_xls.zip")
-download.file("https://ftp.ibge.gov.br/Pib_Municipios/2020/base/base_de_dados_2010_2020_xls.zip", destfile = "data/raw/ibge/base_de_dados_2010_2020_xls.zip")
-unzip("data/raw/ibge/base_de_dados_2002_2009_xls.zip", exdir = "data/raw/ibge/") %>% 
-  file.rename("data/raw/ibge/GDP-2002-2009.xls")
-unzip("data/raw/ibge/base_de_dados_2010_2020_xls.zip", exdir = "data/raw/ibge/") %>% 
-  file.rename("data/raw/ibge/GDP-2010-2020.xls")
 
-# load selected municipalities from base municipality layers
-load("data/raw/geobr/selected_mun.Rdata")
 
-ibge_file <- "data/intermediary/ibge_econ.Rdata"
 if(!file.exists(ibge_file)){
+  
+  library(readxl)
+  library(dplyr)
+  library(tidyr)
+  
+  # download data:
+  # IBGE Gross Domestic Product of Municipalities
+  # https://www.ibge.gov.br/en/statistics/economic/national-accounts/19567-gross-domestic-product-of-municipalities.html?=&t=downloads (31 August 2022)
+  download.file("https://ftp.ibge.gov.br/Pib_Municipios/2020/base/base_de_dados_2002_2009_xls.zip", destfile = "data/raw/ibge/base_de_dados_2002_2009_xls.zip")
+  download.file("https://ftp.ibge.gov.br/Pib_Municipios/2020/base/base_de_dados_2010_2020_xls.zip", destfile = "data/raw/ibge/base_de_dados_2010_2020_xls.zip")
+  unzip("data/raw/ibge/base_de_dados_2002_2009_xls.zip", exdir = "data/raw/ibge/") %>% 
+    file.rename("data/raw/ibge/GDP-2002-2009.xls")
+  unzip("data/raw/ibge/base_de_dados_2010_2020_xls.zip", exdir = "data/raw/ibge/") %>% 
+    file.rename("data/raw/ibge/GDP-2010-2020.xls")
+  
+  # load selected municipalities from base municipality layers
+  load("data/raw/geobr/selected_mun.Rdata")
+  
+  ibge_file <- "data/intermediary/ibge_econ.Rdata"
   
   
   # read 2002 - 2009 data
