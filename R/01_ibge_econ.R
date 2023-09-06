@@ -2,7 +2,7 @@
 
 if (!dir.exists("data/raw/ibge")){dir.create("data/raw/ibge")}
 
-
+ibge_file <- "data/intermediary/ibge_econ.Rdata"
 if(!file.exists(ibge_file)){
   
   library(readxl)

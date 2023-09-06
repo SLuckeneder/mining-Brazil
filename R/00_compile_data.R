@@ -17,9 +17,7 @@ if (!dir.exists("data/W")){dir.create("data/W")}
 
 source("R/01_base_maps.R") # spatial polygons for Brazil, states and municipalities
 
-source("R/01_mapbiomas_v6_mining.R") # mine data MapBiomas area in ha
-
-source("R/01_mapbiomas_v6_LU.R") # land cover and change
+source("R/01_mapbiomas_v8.R") # MapBiomas Collection 8 land cover, merge land cover and change dataset with mining dataset
 
 source("R/01_biophysical_data.R") # biophysical characteristics: Elevation, precipitation
 
@@ -42,7 +40,7 @@ mine_mun_panel <- mine_mun_panel %>%
   dplyr::mutate(unid = paste0(cod_municipio_long, "_", year))
 
 mapbiomas_data <- mapbiomas_data %>% 
-  dplyr::mutate(unid = paste0(geo_code, "_", year))
+  dplyr::mutate(unid = paste0(geocode, "_", year))
 
 cruTS_data <- cruTS_data %>% 
   dplyr::mutate(unid = paste0(code_muni, "_", year)) %>%
@@ -57,7 +55,7 @@ elev_dat <- elev_dat %>%
 M <- ibge_pop %>% 
   dplyr::left_join(ibge_econ %>% dplyr::select(-year, -cod_municipio, -cod_municipio_long, -tax), by = "unid") %>%
   dplyr::left_join(mine_mun_panel %>% dplyr::select(unid, mining_industrial, mining_garimpo, mining), by = "unid") %>%
-  dplyr::left_join(mapbiomas_data %>% dplyr::select(-year, -geo_code), by = "unid") %>%
+  dplyr::left_join(mapbiomas_data %>% dplyr::select(-year, -geocode), by = "unid") %>%
   dplyr::left_join(cruTS_data %>% dplyr::select(-year, -code_muni), by = "unid") %>%
   dplyr::left_join(elev_dat, by = c("cod_municipio_long" = "code_muni"))
 
@@ -71,8 +69,8 @@ M <- M %>% dplyr::mutate("code_muni_6" = as.numeric(substr(cod_municipio_long, 1
 # arrange by year and municipality ID
 M <- M %>% dplyr::arrange(year, cod_municipio_long) %>%
   dplyr::filter(year %in% c(from_yr:(to_yr+window_yrs))) %>%
-  dplyr::select(-codigo_uf, -cod_municipio, -nome_munic, -unid, -cod_reg, -name_reg, -cod_uf, -name_uf, -code_muni_6) %>%
-  dplyr::select(3, 5, 4, 1, 2, 35, 110, 6:34, 36:109)
+  dplyr::select(-codigo_uf, -cod_municipio, -nome_munic, -unid, -cod_reg, -name_reg, -cod_uf, -name_uf, -code_muni_6) # %>%
+  # dplyr::select(3, 5, 4, 1, 2, 35, 110, 6:34, 36:109)
 
 # remove 1 municipality where there is no landcover data
 check <- M %>% dplyr::filter(is.na(Agriculture))
@@ -94,15 +92,15 @@ check <- M %>% dplyr::select(cod_municipio_long, name_munic, year, gdp_total, gd
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 rm(check)
 
-# missing precipitation data (35 municipalities)
+# missing precipitation data (42 municipalities)
 check <- M %>%  dplyr::filter(year <= to_yr, is.na(precip_average))
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
-# missing education data (6 municipalities)
+# missing education data (141 municipalities)
 check <- M %>%  dplyr::filter(year <= to_yr, is.na(educ))
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
-# missing population data (2 municipalities)
+# missing population data (27 municipalities)
 check <- M %>%  dplyr::filter(year <= to_yr, is.na(pop))
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
@@ -133,7 +131,7 @@ M <- M %>%
                 gva_serv_log = log(gva_serv))
 
 # re-order columns
-M <- M %>% dplyr::select(1:4, 6, 5, 114, 111:113, 7:14, 115:119, 15:110)
+M <- M %>% dplyr::select(3, 5, 4, 1, 38, 2, 117, 114:116, 113, 6:12, 118:122, 13:36, 39:112 )
 
 # filter to selected years (e.g. 2005-2015 covers data up to 2020 due to 5-year growth windows)
 M <- M %>% dplyr::filter(year %in% c(from_yr:to_yr))
@@ -142,10 +140,6 @@ M <- M %>% dplyr::filter(year %in% c(from_yr:to_yr))
 check <- M %>% dplyr::group_by(cod_municipio_long) %>% dplyr::summarise(n = n()) %>%
   dplyr::filter(n == length(unique(M$year)))
 M <- M %>% dplyr::filter(cod_municipio_long %in% check$cod_municipio_long)
-
-# also filter out remaining NAs in population growth count (29 municipalities)
-check <- M %>%  dplyr::filter(is.na(pop_growth))
-M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
 # check if there is any NA left in the panel
 sum(is.na(M))
@@ -161,150 +155,6 @@ nrow(M) # observations
 write.csv(M, file = paste0("data/full_data_", from_yr, "-", to_yr, "_", window_yrs, "y.csv"), row.names = FALSE)
 
 
-# save model inputs -------------------------------------------------------
 
-# prepare matrix with yearly mining dummy variables
-library(fastDummies)
-X_mining_industrial <- fastDummies::dummy_cols( M %>% dplyr::select(year), select_columns = "year") %>% dplyr::select(-year) *  M$mining_industrial
-X_mining_industrial <- X_mining_industrial %>% dplyr::mutate_all(function(x) ifelse(x > 0, 1, 0))
-colnames(X_mining_industrial) <- gsub("year", "mining_industrial", colnames(X_mining_industrial))
-X_mining_garimpo <- fastDummies::dummy_cols( M %>% dplyr::select(year), select_columns = "year") %>% dplyr::select(-year) *  M$mining_garimpo
-X_mining_garimpo <- X_mining_garimpo %>% dplyr::mutate_all(function(x) ifelse(x > 0, 1, 0))
-colnames(X_mining_garimpo) <- gsub("year", "mining_garimpo", colnames(X_mining_garimpo))
-
-# Economic growth model yearly (dependent is 5y average annual GDP per capita growth)
-Y <- as.numeric(M$gdp_capita_growth)
-X <- M %>%
-  dplyr::select(gdp_capita_log, pop_growth, pop_dens, educ,
-                gva_agri_log, gva_indu_log, gva_serv_log,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Forest_Plantation_log, mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log,
-                mav_Forest_Formation_Agriculture_log, mav_Forest_Formation_Forest_Plantation_log, mav_Forest_Formation_Grassland_log, mav_Forest_Formation_Pasture_log,
-                mav_Forest_Plantation_Agriculture_log, mav_Forest_Plantation_Grassland_log, mav_Forest_Plantation_Pasture_log,
-                mav_Grassland_Agriculture_log, mav_Grassland_Forest_Plantation_log, mav_Grassland_Pasture_log,
-                mav_Pasture_Agriculture_log, mav_Pasture_Forest_Plantation_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::bind_cols(X_mining_industrial) %>%
-  dplyr::bind_cols(X_mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_gdp_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-# Economic growth model pooled (dependent is 5y average annual GDP per capita growth)
-Y <- as.numeric(M$gdp_capita_growth)
-X <- M %>%
-  dplyr::select(gdp_capita_log, pop_growth, pop_dens, educ,
-                gva_agri_log, gva_indu_log, gva_serv_log,
-                mining_industrial, mining_garimpo,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Forest_Plantation_log, mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log,
-                mav_Forest_Formation_Agriculture_log, mav_Forest_Formation_Forest_Plantation_log, mav_Forest_Formation_Grassland_log, mav_Forest_Formation_Pasture_log,
-                mav_Forest_Plantation_Agriculture_log, mav_Forest_Plantation_Grassland_log, mav_Forest_Plantation_Pasture_log,
-                mav_Grassland_Agriculture_log, mav_Grassland_Forest_Plantation_log, mav_Grassland_Pasture_log,
-                mav_Pasture_Agriculture_log, mav_Pasture_Forest_Plantation_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::mutate(mining_industrial = ifelse(mining_industrial > 0, 1, 0),
-                mining_garimpo = ifelse(mining_garimpo > 0, 1, 0)) %>%
-  dplyr::mutate(mining_industrial_x_pre_2010 = ifelse(mining_industrial * year %in% c(2000:2009), 1, 0),
-                mining_industrial_x_since_2010 = ifelse(mining_industrial * year > 2009, 1, 0)) %>%
-  dplyr::mutate(mining_garimpo_x_pre_2010 = ifelse(mining_garimpo * year %in% c(2000:2009), 1, 0),
-                mining_garimpo_x_since_2010 = ifelse(mining_garimpo * year > 2009, 1, 0)) %>%
-  dplyr::select(-mining_industrial, -mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_gdp_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-
-# Relative forest loss model yearly (dependent is ha per km2 of forest in municipality)
-Y <- as.numeric(M$natural_forest_loss_ha_km2)
-X <- M %>% 
-  dplyr::select(gdp_capita_growth,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log, mav_Grassland_Agriculture_log, mav_Grassland_Pasture_log, mav_Pasture_Agriculture_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::bind_cols(X_mining_industrial) %>%
-  dplyr::bind_cols(X_mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_def_rel_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-# Relative forest loss model pooled (dependent is ha per km2 of forest in municipality)
-Y <- as.numeric(M$natural_forest_loss_ha_km2)
-X <- M %>% 
-  dplyr::select(gdp_capita_growth,
-                mining_industrial, mining_garimpo,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log, mav_Grassland_Agriculture_log, mav_Grassland_Pasture_log, mav_Pasture_Agriculture_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::mutate(mining_industrial = ifelse(mining_industrial > 0, 1, 0),
-                mining_garimpo = ifelse(mining_garimpo > 0, 1, 0)) %>%
-  dplyr::mutate(mining_industrial_x_pre_2010 = ifelse(mining_industrial * year %in% c(2000:2009), 1, 0),
-                mining_industrial_x_since_2010 = ifelse(mining_industrial * year > 2009, 1, 0)) %>%
-  dplyr::mutate(mining_garimpo_x_pre_2010 = ifelse(mining_garimpo * year %in% c(2000:2009), 1, 0),
-                mining_garimpo_x_since_2010 = ifelse(mining_garimpo * year > 2009, 1, 0)) %>%
-  dplyr::select(-mining_industrial, -mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_def_rel_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-
-# Absolute forest loss model yearly (dependent is annual deforestation absolute ha)
-Y <- as.numeric(M$natural_forest_loss)
-X <- M %>% 
-  dplyr::select(gdp_capita_growth,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log, mav_Grassland_Agriculture_log, mav_Grassland_Pasture_log, mav_Pasture_Agriculture_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::bind_cols(X_mining_industrial) %>%
-  dplyr::bind_cols(X_mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_def_abs_yearly_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-# Absolute forest loss model pooled (dependent is annual deforestation absolute ha)
-Y <- as.numeric(M$natural_forest_loss)
-X <- M %>% 
-  dplyr::select(gdp_capita_growth,
-                mining_industrial, mining_garimpo,
-                share_Agriculture, `share_Forest Formation`, `share_Forest Plantation`, share_Grassland, share_Pasture,
-                mav_Agriculture_Grassland_log, mav_Agriculture_Pasture_log, mav_Grassland_Agriculture_log, mav_Grassland_Pasture_log, mav_Pasture_Agriculture_log, mav_Pasture_Grassland_log,
-                precip_norm, elevation,
-                year) %>%
-  dplyr::mutate(mining_industrial = ifelse(mining_industrial > 0, 1, 0),
-                mining_garimpo = ifelse(mining_garimpo > 0, 1, 0)) %>%
-  dplyr::mutate(mining_industrial_x_pre_2010 = ifelse(mining_industrial * year %in% c(2000:2009), 1, 0),
-                mining_industrial_x_since_2010 = ifelse(mining_industrial * year > 2009, 1, 0)) %>%
-  dplyr::mutate(mining_garimpo_x_pre_2010 = ifelse(mining_garimpo * year %in% c(2000:2009), 1, 0),
-                mining_garimpo_x_since_2010 = ifelse(mining_garimpo * year > 2009, 1, 0)) %>%
-  dplyr::select(-mining_industrial, -mining_garimpo) %>%
-  as.matrix()
-YX <- cbind(Y, X)
-write.csv(YX, file = paste0("./data/model_input/YX_def_abs_pooled_", from_yr, "-", to_yr, "_", window_yrs, "y", ".csv"), row.names = FALSE)
-
-
-# spatial weights matrix --------------------------------------------------
-
-if(! file.exists(paste0("./data/W/W_k", knn_set, ".RData"))){
-  
-  library(spdep)
-  
-  # subset to relevant municipalities and order in the same way as Y and X
-  W_base <- base_mun %>%
-    dplyr::filter(code_muni %in% unique(M$cod_municipio_long)) %>%
-    dplyr::arrange(code_muni)
-  
-  # Create W matrix: neighbours (see https://cran.r-project.org/web/packages/spdep/vignettes/nb_sf.html
-  coords_sf <-  sf::st_coordinates(sf::st_centroid(W_base))
-  W_k <- spdep::knearneigh(coords_sf, k = knn_set)
-  knear_nb <- spdep::knn2nb(W_k)
-  W_k <- spdep::nb2mat(knear_nb)
-  
-  save(W_k, file = paste0("./data/W/W_k", knn_set, ".RData"))
-}
   
 

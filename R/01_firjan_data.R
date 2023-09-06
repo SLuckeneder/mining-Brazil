@@ -5,15 +5,17 @@ library(dplyr)
 library(tidyr)
 
 if (!dir.exists("data/raw/firjan")){dir.create("data/raw/firjan")}
-# add data from https://www.firjan.com.br/ifdm/downloads/ (1 June 2022)
-firjan_url <- "https://www.firjan.com.br/data/files/5B/F3/48/87/F1B8461049FF6646A8A809C2/Evolu__o%20do%20IFDM%20Educa__o%20-%202005%20a%202016.xlsx"
-download.file(firjan_url, destfile = "data/raw/firjan/firjan_educ_2005_2016.xlsx")
 
 # load selected municipalities from base municipality layers
 load("data/raw/geobr/selected_mun.Rdata")
 
 firjan_file <- "data/intermediary/firjan_educ_2005_2016.Rdata"
 if(!file.exists(firjan_file)){
+  
+  # add data from https://www.firjan.com.br/ifdm/downloads/ (1 June 2022)
+  firjan_url <- "https://www.firjan.com.br/data/files/5B/F3/48/87/F1B8461049FF6646A8A809C2/Evolu__o%20do%20IFDM%20Educa__o%20-%202005%20a%202016.xlsx"
+  download.file(firjan_url, destfile = "data/raw/firjan/firjan_educ_2005_2016.xlsx")
+  
   
   # read data ---------------------------------------------------------------
   

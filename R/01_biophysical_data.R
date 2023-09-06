@@ -1,13 +1,10 @@
 
 library(dplyr)
 library(tidyr)
-library(terra)
 library(sf)
 library(stars)
 library(elevatr)
-library(exactextractr)
 library(stringi)
-library(cruts)
 library(rvest)
 library(R.utils)
 
@@ -43,11 +40,16 @@ if(!file.exists(elevation_file)){
 
 # precipitation -----------------------------------------------------------
 
-sf::sf_use_s2(FALSE) # turn off the s2 processing, otherwise error from intersecting geometries occurs from 2010 data
 
 prec_file <- "data/intermediary/cruTS_2000_2020.Rdata"
 dir.create(dirname(prec_file), recursive = TRUE, showWarnings = FALSE)
 if(!file.exists(prec_file)){
+  
+  sf::sf_use_s2(FALSE) # turn off the s2 processing, otherwise error from intersecting geometries occurs from 2010 data
+  library(terra)
+  library(exactextractr)
+  library(cruts)
+  
 
   # download cruTS Dat.nc from https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.05/cruts.2103051243.v4.05/pre/
   #Grab filenames from separate URL
