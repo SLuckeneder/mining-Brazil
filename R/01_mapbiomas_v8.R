@@ -14,8 +14,9 @@ if(!file.exists(paste0("data/intermediary/mapbiomas_v8_2000_2022.Rdata"))){
   
   years <- c(2000:2020)
   window_yrs <- 5 # 5-year window for average land use change computations
-  subs <- c("Forest Formation", "Forest Plantation", "Grassland", "Wetland", "Pasture", "Agriculture", "Urban Area")
-  
+
+  # Land Use ----------------------------------------------------------------
+
   # download data (note that MapBiomas constantly updates versions, please contact the authors in case of unavailable collection 8)
   # https://brasil.mapbiomas.org/en/estatisticas/
   if (! file.exists("data/raw/MapBiomas-v8/MapBiomas_col8_municipalities.xlsx")){
@@ -23,9 +24,8 @@ if(!file.exists(paste0("data/intermediary/mapbiomas_v8_2000_2022.Rdata"))){
                   destfile = "data/raw/MapBiomas-v8/MapBiomas_col8_municipalities.xlsx") 
   }
   
-
-  # Land Use ----------------------------------------------------------------
-
+  subs <- c("Forest Formation", "Forest Plantation", "Grassland", "Wetland", "Pasture", "Agriculture", "Urban Area")
+  
   # read data
   LU_data_raw <- readxl::read_excel("data/raw/MapBiomas-v8/MapBiomas_col8_municipalities.xlsx", sheet = 2)
 
@@ -216,75 +216,44 @@ if(!file.exists(paste0("data/intermediary/mapbiomas_v8_2000_2022.Rdata"))){
   # download data (note that MapBiomas constantly updates versions, please contact the authors in case of unavailable collection 8)
   # https://brasil.mapbiomas.org/en/estatisticas/
   if (! file.exists("data/raw/MapBiomas-v8/MapBiomas_col8_mining.xlsx")){
-    download.file("https://mapbiomas-br-site.s3.amazonaws.com/downloads/Estatisticas%20/Colecao_7_Mining_BR_UF_Biome_Mun_TI_SITE.xlsx", 
+    download.file("https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/09/TABELA-MINERACAO-MAPBIOMAS-COL8.0.xlsx", 
                   destfile = "data/raw/MapBiomas-v8/MapBiomas_col8_mining.xlsx")
   }
   
   # read data
-  mining_data_raw <- readxl::read_excel("data/raw/MapBiomas-v8/MapBiomas_col8_mining.xlsx", sheet = 5)
+  mining_data_raw <- readxl::read_excel("data/raw/MapBiomas-v8/MapBiomas_col8_mining.xlsx", sheet = 2)
   
   # tidy
   mining_data <- mining_data_raw %>% 
-    tidyr::gather(key = "year", value = "value", 
-                  -state, -municipality, -feature_id, -class_id, -group, -level_1, -level_2, -level_3) %>%
-    dplyr::group_by(feature_id, year, level_1) %>%
-    dplyr::mutate(value = sum(value, na.rm = TRUE)) %>%
+    dplyr::select(GEOCODE, level_1, 12:49) %>%
+    tidyr::gather(key = "year", value = "value", -GEOCODE, -level_1) %>%
+    dplyr::group_by(GEOCODE, year, level_1) %>%
+    dplyr::summarise(value = sum(value, na.rm = T)) %>%
+    dplyr::ungroup() %>%
     dplyr::filter(value > 0) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(unid = paste(feature_id, year, level_1, sep = "_")) %>%
-    dplyr::group_by(unid) %>%
-    dplyr::slice(1) %>%
-    dplyr::ungroup() %>%
     tidyr::spread(key = "level_1", value = "value") %>%
     dplyr::rename(mining_industrial = `2. Industrial`,
-                  mining_garimpo = `1. Garimpo`)
+                  mining_garimpo = `1. Garimpo`) %>%
+    dplyr::mutate(mining_industrial = ifelse(is.na(mining_industrial), 0, mining_industrial)) %>%
+    dplyr::mutate(mining_garimpo = ifelse(is.na(mining_garimpo), 0, mining_garimpo)) %>%
+    dplyr::mutate(unid = paste(GEOCODE, year, sep = "_")) %>%
+    dplyr::select(-GEOCODE, -year) %>%
+    dplyr::mutate(mining = mining_industrial + mining_garimpo)
   
-  # sum over multiple observations per feature_id
-  mining_data <- mining_data %>% dplyr::group_by(feature_id, year) %>%
-    dplyr::mutate(mining_industrial = sum(mining_industrial, na.rm = T),
-                  mining_garimpo = sum(mining_garimpo, na.rm = T)) %>%
-    dplyr::slice(1) %>%
-    dplyr::ungroup()
-  
-  # create municipality identifier and merge with LU data
-  conc_LU <- LU_data_raw %>%
-    dplyr::filter(level_2 == "Mining")
-  mining <- data.frame("mining" = rowSums(conc_LU[15:51], na.rm = TRUE))
-  conc_LU <- dplyr::bind_cols(conc_LU, mining) %>%
-    dplyr::select(feature_id, geocode, municipality, state_acronym, mining) %>%
-    dplyr::mutate(mining_key = paste(state_acronym, municipality, sep = "_")) %>%
-    dplyr::group_by(mining_key) %>%
-    dplyr::mutate(mining_sum = sum(mining, na.rm = TRUE)) %>%
-    dplyr::slice(1) %>%
-    dplyr::select(feature_id, geocode, municipality, mining_key)
-  colnames(conc_LU) <- c("feature_id_LU", "geocode_LU", "municipality_LU", "mining_key")
-
-  conc_mining <- mining_data %>%
-    dplyr::select(state, municipality, feature_id, mining_garimpo, mining_industrial) %>%
-    dplyr::mutate(mining_key = paste(state, municipality, sep = "_")) %>%
-    dplyr::group_by(mining_key) %>%
-    dplyr::mutate(mining = sum(mining_garimpo, mining_industrial, na.rm = TRUE)) %>%
-    dplyr::slice(1) %>%
-    dplyr::select(feature_id, mining_key)
-  colnames(conc_mining) <- c("feature_id_MI", "mining_key")
-
-  conc <- dplyr::left_join(conc_LU, conc_mining, by = "mining_key") %>%
-    dplyr::filter(!is.na(feature_id_MI))
-  
-  mining_data <- mining_data %>% 
-    dplyr::left_join(conc %>% dplyr::select(feature_id_MI, geocode_LU), by = c("feature_id" = "feature_id_MI")) %>%
-    dplyr::rename(geocode = geocode_LU) %>%
-    dplyr::mutate(geocode = as.character(geocode))
-
-  # merge to base municipality layer 
-  base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg") %>%
-    dplyr::mutate(code_muni = as.character(code_muni))
-  mining_data <- dplyr::left_join(base_mun, mining_data, by = c("code_muni" = "geocode")) %>%
-    dplyr::select(-feature_id, -class_id, -group, -level_2, -level_3) %>%
-    dplyr::mutate(unid = paste(code_muni, year, sep = "_"))
+  # merge with LU data
+  mapbiomas_data <- mapbiomas_data %>%
+    dplyr::mutate(unid = paste(geocode, year, sep = "_")) %>%
+    dplyr::left_join(mining_data) %>%
+    dplyr::mutate(mining_industrial = ifelse(is.na(mining_industrial), 0, mining_industrial)) %>%
+    dplyr::mutate(mining_garimpo = ifelse(is.na(mining_garimpo), 0, mining_garimpo)) %>%
+    dplyr::mutate(mining = ifelse(is.na(mining), 0, mining))
   
   # # map for a brief check
-  # p_dat <- mining_data %>% dplyr::filter(year == 2020) %>% dplyr::mutate(mining = mining_industrial + mining_garimpo)
+  # base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
+  # p_dat <- base_mun %>%
+  #   dplyr::left_join(mapbiomas_data, mining_data, by = c("code_muni" = "geocode")) %>% 
+  #   dplyr::filter(year == 2020) %>% 
+  #   dplyr::mutate(mining = mining_industrial + mining_garimpo)
   # brks <- c(0, 10, 100, 1000, 10000, max(p_dat$mining, na.rm = T))
   # p_dat <- p_dat %>%
   #   dplyr::mutate(mining_2020_d = cut(x = p_dat$mining, breaks = brks, include.lowest = FALSE, dig.lab = 5)) %>%
@@ -294,16 +263,6 @@ if(!file.exists(paste0("data/intermediary/mapbiomas_v8_2000_2022.Rdata"))){
   #   ggplot2::geom_sf(lwd = 0.1) +
   #   ggplot2::scale_fill_manual(values = c(viridis::viridis(5, direction = -1), "white"),
   #                              labels = c("0 to 10", "10 to 100", "100 to 1,000", "1,000 to 10,000", "10,000 to 41,327", "No mining"))
-  
-  # make base_mun a panel and add mining data
-  mine_mun_panel <- do.call("rbind", replicate(21, base_mun %>% sf::st_drop_geometry(), simplify = FALSE)) %>%
-    dplyr::mutate(year = rep(c(2000:2020), each = nrow(base_mun))) %>%
-    dplyr::mutate(unid = paste(code_muni, year, sep = "_")) %>%
-    dplyr::left_join(mining_data %>% sf::st_drop_geometry() %>% dplyr::select(unid, mining_garimpo, mining_industrial), by = "unid") %>%
-    dplyr::mutate(mining_garimpo = ifelse(is.na(mining_garimpo), 0, mining_garimpo)) %>%
-    dplyr::mutate(mining_industrial = ifelse(is.na(mining_industrial), 0, mining_industrial)) %>%
-    dplyr::mutate(mining = mining_industrial + mining_garimpo) %>%
-    dplyr::select(-code_state, -unid)
   
   # save --------------------------------------------------------------------
   save(mapbiomas_data, file = paste0("data/intermediary/mapbiomas_v8_2000_2020.Rdata"))

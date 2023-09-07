@@ -9,8 +9,10 @@ if (!dir.exists("figures/main_text")){dir.create("figures/main_text", recursive 
 
 # Figure 2a ---------------------------------------------------------------
 
-# mining data
-load("data/intermediary/mapbiomas_mine_data.Rdata")
+# read data
+if(! file.exists("data/full_data_2000-2020_5y.csv")){source("R/00_compile_data.R")}
+full_data <- read.csv2(file = paste0("data/full_data_2000-2020_5y.csv"), sep = ",", stringsAsFactors = FALSE) # read full data matrix
+full_data <- full_data %>% dplyr::mutate_at(c(4:121), as.numeric)
 
 # selected municipalities in balanced panel (5506 municipality ids)
 if(!file.exists(paste0("data/raw/geobr/selected_mun.Rdata"))){source("R/01_base_maps.R")}
@@ -41,29 +43,19 @@ wb_commodity_prices <- wb_commodity_prices%>%
   tidyr::gather(key = "key", value = "value", -date, -year) %>% na.omit() %>%
   dplyr::mutate(date = as.Date(date))
 
-# gdp data
-load("data/intermediary/ibge_econ.Rdata")
-# load("data/intermediary/ibge_pop.Rdata")
-ibge_econ_tidy <- ibge_econ %>%
+# gdp and mining data
+tidy_data <- full_data %>%
+  dplyr::select(cod_municipio_long, year, gdp_capita, mining) %>%
   dplyr::left_join(GDP_deflator) %>%
   dplyr::filter(cod_municipio_long %in% selected_mun) %>%
-  dplyr::select(cod_municipio_long, year, unid, gdp_capita, gdp_deflator) %>%
   dplyr::arrange(year, cod_municipio_long) %>%
   dplyr::group_by(cod_municipio_long) %>%
   dplyr::mutate(gdp_capita_growth = (gdp_capita - lag(gdp_capita)) / lag(gdp_capita) * 100) %>%
-  dplyr::mutate(gdp_capita_growth_real = gdp_capita_growth - gdp_deflator) 
-
-# add mining
-ibge_econ_mining <- ibge_econ_tidy %>%
-  dplyr::left_join(mine_mun_panel %>%
-                     dplyr::mutate(unid = paste(code_mn, year, sep = "_")) %>%
-                     dplyr::select(unid, mining) %>%
-                     dplyr::rename(mining_area = mining),
-                   by = "unid") %>%
-  dplyr::mutate(mining = ifelse(mining_area > 0 , TRUE, FALSE))
+  dplyr::mutate(gdp_capita_growth_real = gdp_capita_growth - gdp_deflator) %>%
+  dplyr::mutate(mining = ifelse(mining > 0 , TRUE, FALSE))
 
 # Prepare data for plotting: compute median
-p_dat <- ibge_econ_mining %>%
+p_dat <- tidy_data %>%
   dplyr::mutate(date = paste0(year, "-01-01")) %>%
   dplyr::group_by(date, mining) %>%
   dplyr::summarize(gdp_capita_growth_real = median(gdp_capita_growth_real)) %>%

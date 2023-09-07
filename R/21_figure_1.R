@@ -11,33 +11,38 @@ if (!dir.exists("figures/main_text")){dir.create("figures/main_text", recursive 
 # data --------------------------------------------------------------------
 
 # spatial base layer
-if(!file.exists(paste0("data/raw/geobr/base_mun_2015.shp"))){source("R/01_base_maps.R")}
-base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.shp")
-base_sta <- sf::read_sf("data/raw/geobr/base_sta_2015.shp")
-base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.shp")
+if(!file.exists(paste0("data/raw/geobr/base_mun_2015.gpkg"))){source("R/01_base_maps.R")}
+base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
+base_sta <- sf::read_sf("data/raw/geobr/base_sta_2015.gpkg")
+base_nat <- sf::read_sf("data/raw/geobr/base_nat_2015.gpkg")
+
+# read data
+if(! file.exists("data/full_data_2000-2020_5y.csv")){source("R/00_compile_data.R")}
+full_data <- read.csv2(file = paste0("data/full_data_2000-2020_5y.csv"), sep = ",", stringsAsFactors = FALSE) # read full data matrix
+full_data <- full_data %>% dplyr::mutate_at(c(4:121), as.numeric)
 
 # mining data
-load("data/intermediary/mapbiomas_mine_data.Rdata")
-
-mining_area <- mine_mun_panel %>% 
-  dplyr::select(code_mn, year, mining) %>%
+mining_area <- full_data %>% 
+  dplyr::select(cod_municipio_long, year, mining) %>%
   dplyr::filter(year == 2020) %>%
   tidyr::spread(key = "year", value = "mining") %>%
-  dplyr::rename("mining_2020" = `2020`)
+  dplyr::rename("mining_2020" = `2020`) %>%
+  dplyr::mutate(cod_municipio_long = as.character(cod_municipio_long))
 
-mining_growth <- mine_mun_panel %>%
-  dplyr::select(code_mn, year, mining) %>%
+mining_growth <- full_data %>%
+  dplyr::select(cod_municipio_long, year, mining) %>%
   dplyr::filter(year %in% c(2005:2020)) %>%
   dplyr::arrange(year) %>%
-  dplyr::group_by(code_mn) %>%
+  dplyr::group_by(cod_municipio_long) %>%
   dplyr::mutate(mining_growth = (mining - lag(mining)) / lag(mining) * 100) %>%
   dplyr::filter(is.finite(mining_growth)) %>%
-  dplyr::summarise(mining_growth = mean(mining_growth))
+  dplyr::summarise(mining_growth = mean(mining_growth)) %>%
+  dplyr::mutate(cod_municipio_long = as.character(cod_municipio_long))
 
 mining_data <- base_mun %>% 
-  dplyr::mutate(code_mn = as.character(code_mn)) %>%
-  dplyr::left_join(mining_area) %>%
-  dplyr::left_join(mining_growth) 
+  dplyr::mutate(code_muni = as.character(code_muni)) %>%
+  dplyr::left_join(mining_area, by = c("code_muni" = "cod_municipio_long")) %>%
+  dplyr::left_join(mining_growth, by = c("code_muni" = "cod_municipio_long")) 
 
 # legal Amazon
 if(! file.exists("data/raw/ibge/legal_amazon/Amazonia_Legal_2020.gpkg")){source("R/01_ibge_amazon.R")}
@@ -45,15 +50,15 @@ legal_amazon <- sf::read_sf("data/raw/ibge/legal_amazon/Amazonia_Legal_2020.gpkg
   sf::st_set_crs(sf::st_crs(mining_data))
 
 # no of mining municipalities
-mine_mun_panel %>% dplyr::filter(mining > 0) %>%
-  dplyr::group_by(code_mn) %>%
+full_data %>% dplyr::filter(mining > 0) %>%
+  dplyr::group_by(cod_municipio_long) %>%
   dplyr::slice(1) %>% nrow()
 
 # Minas Gerais
-minas_gerais <- base_sta %>% dplyr::filter(abbrv_s == "MG")
+minas_gerais <- base_sta %>% dplyr::filter(abbrev_state == "MG")
 
 # no of mining municipalities in MG
-mining_data %>% dplyr::filter(abbrv_s == "MG") %>%
+mining_data %>% dplyr::filter(abbrev_state == "MG") %>%
   dplyr::filter(mining_2020 > 0) %>%
   nrow()
 
@@ -65,16 +70,18 @@ sum(mining_data$mining_2020, na.rm = T)
 sum(legal_amazon_mining$mining_2020, na.rm = T) / sum(mining_data$mining_2020, na.rm = T)
 
 # time series data by region (Amazon, Minas Gerais, Rest of Brazil) and mining type
+mine_mun_panel <- full_data %>%
+  dplyr::select(cod_municipio_long, sigla_uf, year,  mining_industrial, mining_garimpo) %>%
+  dplyr::mutate(cod_municipio_long = as.character(cod_municipio_long)) %>%
+  dplyr::left_join(legal_amazon_mining %>% dplyr::select(code_muni, cat), 
+                   by = c("cod_municipio_long" = "code_muni"))
 mine_mun_panel <- mine_mun_panel %>%
-  dplyr::left_join(legal_amazon_mining %>% dplyr::select(code_mn, cat))
-mine_mun_panel <- mine_mun_panel %>%
-  dplyr::mutate(cat = ifelse(abbrv_s == "MG", "Minas Gerais", cat)) %>%
+  dplyr::mutate(cat = ifelse(sigla_uf == "MG", "Minas Gerais", cat)) %>%
   dplyr::mutate(cat = ifelse(is.na(cat), "Rest of Brazil", cat)) %>%
-  dplyr::select(-geometry) %>%
+  dplyr::select(-geom) %>%
   dplyr::rename("mining_region" = cat)
 mine_mun_panel <- mine_mun_panel %>% 
-  dplyr::select(-mining) %>%
-  tidyr::gather(key = "mining_type", value = "mining_area", -code_mn, -name_mn, -abbrv_s, -year, -mining_region) %>%
+  tidyr::gather(key = "mining_type", value = "mining_area", -cod_municipio_long, -sigla_uf, -year, -mining_region) %>%
   dplyr::mutate(mining_type = ifelse(mining_type == "mining_garimpo", "Garimpo mining", "Industrial mining"))
 
 
@@ -195,7 +202,7 @@ p_ts_region <- mine_mun_panel %>%
   dplyr::filter(year %in% c(2005:2020)) %>%
   ggplot2::ggplot(aes(x = year, y = mining_area_1000_ha, fill = mining_region)) +
   ggplot2::geom_bar(stat = "identity", width = 0.8, color = "black") +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(6), limits= c(0, 220), expand = c(0,0)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(6), limits= c(0, 385), expand = c(0,0)) +
   ggplot2::scale_x_continuous(breaks=c(2005:2020), expand = c(0, 0)) +
   ggplot2::scale_fill_manual(values = viridis::rocket(9)[c(8, 6, 4)]) + 
   ggplot2::labs(title = NULL, x = NULL, y = NULL) +
@@ -223,7 +230,7 @@ p_ts_type <- mine_mun_panel %>%
   dplyr::filter(year %in% c(2005:2020)) %>%
   ggplot2::ggplot(aes(x = year, y = mining_area_1000_ha, fill = mining_type)) +
   ggplot2::geom_bar(stat = "identity", width = 0.8, color = "black") +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(6), limits= c(0, 220), expand = c(0,0)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(6), limits= c(0, 385), expand = c(0,0)) +
   ggplot2::scale_x_continuous(breaks=c(2005:2020), expand = c(0, 0)) +
   ggplot2::scale_fill_manual(values = viridis::mako(9)[c(8, 4)]) + 
   ggplot2::labs(title = NULL, x = NULL, y = NULL) +

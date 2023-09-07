@@ -9,39 +9,30 @@ if (!dir.exists("figures/main_text")){dir.create("figures/main_text", recursive 
 
 # Figure 3a,b --------------------------------------------------------------
 
-# mining data
-load("data/intermediary/mapbiomas_mine_data.Rdata")
+# read data
+if(! file.exists("data/full_data_2000-2020_5y.csv")){source("R/00_compile_data.R")}
+full_data <- read.csv2(file = paste0("data/full_data_2000-2020_5y.csv"), sep = ",", stringsAsFactors = FALSE) # read full data matrix
+full_data <- full_data %>% dplyr::mutate_at(c(4:121), as.numeric)
 
 # selected municipalities in balanced panel (5506 municipality ids)
 if(!file.exists(paste0("data/raw/geobr/selected_mun.Rdata"))){source("R/01_base_maps.R")}
 load("data/raw/geobr/selected_mun.Rdata")
 
-# land cover data
-load("data/intermediary/mapbiomas_v6_2000_2020.Rdata")
-
-# tidy 
-mapbiomas_data_tidy <- mapbiomas_data %>% 
-  dplyr::filter(geo_code %in% selected_mun) %>%
-  dplyr::select(geo_code, year, AREA_mun, natural_forest_loss) %>%
-  dplyr::mutate(natural_forest_loss_ha_km2 = natural_forest_loss / AREA_mun)
-
-# combine with mining
-mapbiomas_data_mining <- mapbiomas_data_tidy %>%
-  dplyr::mutate(unid = paste(geo_code, year, sep = "_")) %>%
-  dplyr::left_join(mine_mun_panel %>%
-                     dplyr::mutate(unid = paste(code_mn, year, sep = "_")) %>%
-                     dplyr::select(unid, mining) %>%
-                     dplyr::rename(mining_area = mining),
-                   by = "unid") %>%
-  dplyr::mutate(mining = ifelse(mining_area > 0 , TRUE, FALSE))
+# land cover and mining data
+tidy_data <- full_data %>% 
+  dplyr::filter(cod_municipio_long %in% selected_mun) %>%
+  dplyr::select(cod_municipio_long, year, AREA_mun, natural_forest_loss, mining) %>%
+  dplyr::mutate(natural_forest_loss_ha_km2 = natural_forest_loss / AREA_mun) %>%
+  dplyr::mutate(mining = ifelse(mining > 0 , TRUE, FALSE)) %>%
+  dplyr::filter(year > 2000)
 
 # prepare data for Figure 3b: total forest loss
-p_dat <- mapbiomas_data_mining %>% 
+p_dat <- tidy_data %>% 
   dplyr::group_by(year, mining) %>%
   dplyr::summarize(natural_forest_loss = sum(natural_forest_loss) / 100) 
 
 # prepare data for Figure 3a: median forest loss rates for mining and non-mining municipalities (exclude municipalities with zero forest)
-temp_median <- mapbiomas_data_mining %>% 
+temp_median <- tidy_data %>% 
   dplyr::filter(natural_forest_loss > 0) %>%
   dplyr::group_by(year, mining) %>%
   dplyr::summarise(average_forest_loss_ha_km2 = median(natural_forest_loss_ha_km2))
@@ -111,11 +102,11 @@ p_ts_relative <- p_dat %>%
   ggplot2::ggplot(aes(x = d)) + 
   ggplot2::geom_line( aes(y = average_forest_loss_ha_km2, group = mining, colour = mining), size = 1) +
   ggplot2::geom_ribbon(data = ribbons, aes(ymin = ymin, ymax = ymax, fill = fill), alpha = 0.1) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(8), limits = c(0, 0.44), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(8), limits = c(0, 0.34), expand = c(0, 0)) +
   scale_x_continuous(breaks=c(4, 6, 8, 10, 12, 14, 16, 18, 20), limits = c(3, 20),
                      labels= c("2004", "2006", "2008", "2010", "2012", "2014", "2016", "2018", "2020"), expand = c(0, 0)) +
   ggplot2::scale_color_manual(values = viridis::plasma(7)[c(2, 6)]) + 
-  ggplot2::scale_fill_manual(values = viridis::plasma(7)[c(6, 2)], na.translate = F) +
+  ggplot2::scale_fill_manual(values = viridis::plasma(7)[c(2, 6)], na.translate = F) +
   ggplot2::labs(title = NULL, x = NULL, y = NULL, colour = NULL) +
   ggplot2::guides(fill = FALSE) +
   ggplot2::theme_bw() +
@@ -133,7 +124,7 @@ p_ts_relative <- p_dat %>%
 
 
 # Figure 3b
-p_ts_absolute <- mapbiomas_data_mining %>%
+p_ts_absolute <- tidy_data %>%
   dplyr::group_by(mining, year) %>%
   dplyr::filter(year > 2002) %>%
   dplyr::summarise(natural_forest_loss = sum(natural_forest_loss) / 100000) %>% # ha to thousand km2

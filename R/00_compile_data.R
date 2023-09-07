@@ -1,9 +1,9 @@
 
 # NOTE: Users can move directly to the models (10_run_spatial_models.R and herein sourced 11_lndetPaceBarry.R and 12_run_*.R), 
-# as 10_run_spatial_models.R will automatically download ready-to-use datasets from ZENODO-LINK-HERE and store it in ./model_input and ./W.
+# as 10_run_spatial_models.R will automatically download ready-to-use dataset from GitHub
 
 window_yrs <- 5 # set window for calculation of average annual growth rates, main model uses 5 years
-from_yr <- 2005
+from_yr <- 2000
 to_yr <- 2015
 knn_set <- 5 # set k for k-nearest neighbours weights matrix, main model uses k=5 
 
@@ -33,12 +33,7 @@ source("R/01_worldbank_data.R") # WB GDP deflator and commodity prices for Figur
 
 # prepare for merging the data --------------------------------------------
 
-# create matching IDs
-mine_mun_panel <- mine_mun_panel %>% 
-  dplyr::rename(cod_municipio_long = code_muni) %>%
-  dplyr::mutate(cod_municipio = substr(cod_municipio_long, 3, 7)) %>%
-  dplyr::mutate(unid = paste0(cod_municipio_long, "_", year))
-
+# # create matching IDs
 mapbiomas_data <- mapbiomas_data %>% 
   dplyr::mutate(unid = paste0(geocode, "_", year))
 
@@ -54,7 +49,6 @@ elev_dat <- elev_dat %>%
 
 M <- ibge_pop %>% 
   dplyr::left_join(ibge_econ %>% dplyr::select(-year, -cod_municipio, -cod_municipio_long, -tax), by = "unid") %>%
-  dplyr::left_join(mine_mun_panel %>% dplyr::select(unid, mining_industrial, mining_garimpo, mining), by = "unid") %>%
   dplyr::left_join(mapbiomas_data %>% dplyr::select(-year, -geocode), by = "unid") %>%
   dplyr::left_join(cruTS_data %>% dplyr::select(-year, -code_muni), by = "unid") %>%
   dplyr::left_join(elev_dat, by = c("cod_municipio_long" = "code_muni"))
@@ -73,35 +67,41 @@ M <- M %>% dplyr::arrange(year, cod_municipio_long) %>%
   # dplyr::select(3, 5, 4, 1, 2, 35, 110, 6:34, 36:109)
 
 # remove 1 municipality where there is no landcover data
-check <- M %>% dplyr::filter(is.na(Agriculture))
+check <- M %>% dplyr::filter(year >= 2005, is.na(Agriculture))
 unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
 # deal with negative values in GDP and GVA reporting, which may result as statistical artifacts from imputation: remove from sample
 # negative values in GDP (1 municipality: Guamaré 2012) 
 check <- M %>% dplyr::select(cod_municipio_long, name_munic, year, gdp_total, gdp_capita, gva_agri, gva_indu) %>%
-  dplyr::filter(gdp_total < 0)
+  dplyr::filter(year >= 2005, gdp_total < 0)
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 # negative values in GVA agriculture (1 municipality: Taquaral 2015)
 check <- M %>% dplyr::select(cod_municipio_long, name_munic, year, gdp_total, gdp_capita, gva_agri, gva_indu) %>%
-  dplyr::filter(gva_agri < 0)
+  dplyr::filter(year >= 2005, gva_agri < 0)
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 # negative values in GVA industry (31 municipalities)
 check <- M %>% dplyr::select(cod_municipio_long, name_munic, year, gdp_total, gdp_capita, gva_agri, gva_indu) %>%
-  dplyr::filter(gva_indu < 0)
+  dplyr::filter(year >= 2005, gva_indu < 0)
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 rm(check)
 
 # missing precipitation data (42 municipalities)
-check <- M %>%  dplyr::filter(year <= to_yr, is.na(precip_average))
+check <- M %>%  dplyr::filter(year >= 2005, year <= to_yr, is.na(precip_average))
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
 # missing education data (141 municipalities)
-check <- M %>%  dplyr::filter(year <= to_yr, is.na(educ))
+check <- M %>%  dplyr::filter(year >= 2005, year <= to_yr, is.na(educ))
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
 # missing population data (27 municipalities)
-check <- M %>%  dplyr::filter(year <= to_yr, is.na(pop))
+check <- M %>%  dplyr::filter(year >= 2005, year <= to_yr, is.na(pop))
+unique(check$cod_municipio_long)
 M <- M %>% dplyr::filter(! cod_municipio_long %in% unique(check$cod_municipio_long))
 
 # calculate additional variables ------------------------------------------
@@ -131,28 +131,12 @@ M <- M %>%
                 gva_serv_log = log(gva_serv))
 
 # re-order columns
-M <- M %>% dplyr::select(3, 5, 4, 1, 38, 2, 117, 114:116, 113, 6:12, 118:122, 13:36, 39:112 )
-
-# filter to selected years (e.g. 2005-2015 covers data up to 2020 due to 5-year growth windows)
-M <- M %>% dplyr::filter(year %in% c(from_yr:to_yr))
-
-# filter to balanced panel
-check <- M %>% dplyr::group_by(cod_municipio_long) %>% dplyr::summarise(n = n()) %>%
-  dplyr::filter(n == length(unique(M$year)))
-M <- M %>% dplyr::filter(cod_municipio_long %in% check$cod_municipio_long)
-
-# check if there is any NA left in the panel
-sum(is.na(M))
-
-
+M <- M %>% dplyr::select(3, 5, 4, 1, 35, 2, 117, 114:116, 113, 6:12, 118:122, 107:109, 13:33, 36:106, 110:112)
 
 # save full data matrix ---------------------------------------------------
 
 summary(M)
-length(unique(M$cod_municipio_long)) # municipalities
-nrow(M) # observations
-
-write.csv(M, file = paste0("data/full_data_", from_yr, "-", to_yr, "_", window_yrs, "y.csv"), row.names = FALSE)
+write.csv(M, file = paste0("data/full_data_", from_yr, "-", to_yr+window_yrs, "_", window_yrs, "y.csv"), row.names = FALSE)
 
 
 
