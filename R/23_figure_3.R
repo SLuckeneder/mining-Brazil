@@ -207,13 +207,13 @@ p_relative_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-0.7, 0.7), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.41, 0.25), expand = c(0, 0), breaks = scales::pretty_breaks(4)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::inferno(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.4, 0.85),
+                 legend.position = c(0.2, 0.85),
                  legend.direction = "vertical",
                  panel.grid.minor = element_blank(),
                  panel.grid.major = element_blank(),
@@ -253,7 +253,7 @@ p_relative_divide <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-0.7, 0.7), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.41, 0.25), expand = c(0, 0), breaks = scales::pretty_breaks(4)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::inferno(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -305,13 +305,13 @@ p_relative_year <- p_dat %>%
   ggplot2::geom_hline(yintercept=0) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-0.7, 0.75), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.4, 0.7), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::inferno(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.2, 0.25),
+                 legend.position = c(0.2, 0.2),
                  legend.direction = "vertical",
                  panel.grid.minor = element_blank(),
                  panel.grid.major = element_blank(),
@@ -351,7 +351,7 @@ p_relative_divide <- p_dat %>%
   ggplot2::geom_hline(yintercept=0) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-0.7, 0.75), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.4, 0.7), expand = c(0, 0), breaks = scales::pretty_breaks(6)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::inferno(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -403,7 +403,7 @@ p_absolute_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-1.7, 1.1), breaks = c(-1.5, -1, -0.5, 0, 0.5, 1), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-2.1, 0.7), breaks = c(-2, -1.5, -1, -0.5, 0, 0.5), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::mako(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -449,7 +449,7 @@ p_absolute_divide <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-1.7, 1.1), breaks = c(-1.5, -1, -0.5, 0, 0.5, 1), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-2.1, 0.7), breaks = c(-2, -1.5, -1, -0.5, 0, 0.5), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::mako(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -502,7 +502,7 @@ p_absolute_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-0.8, 6.7), expand = c(0, 0), breaks = c(0, 1.5, 3, 4.5, 6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.8, 7.6), expand = c(0, 0), breaks = c(0, 1.5, 3, 4.5, 6, 7.5)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::mako(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -549,7 +549,7 @@ p_absolute_divide <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-0.8, 6.7), expand = c(0, 0), breaks = c(0, 1.5, 3, 4.5, 6)) +
+  ggplot2::scale_y_continuous(limits = c(-0.8, 7.6), expand = c(0, 0), breaks = c(0, 1.5, 3, 4.5, 6, 7.5)) +
   ggplot2::scale_color_manual(name = NULL, values = viridis::mako(8)[c(1, 5)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),

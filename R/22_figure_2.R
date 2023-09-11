@@ -192,7 +192,7 @@ p_gdp_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-3.9, 5.1), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-2.8, 4.1), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(10)[c(1, 8)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -239,7 +239,7 @@ p_gdp_divide <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-3.9, 5.1), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-2.8, 4.1), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(10)[c(1, 8)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -291,14 +291,14 @@ p_gdp_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = "Impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-3.9, 4.7), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-2.8, 4.1), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(10)[c(1, 8)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
                  axis.title.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.8, 0.2),
+                 legend.position = c(0.75, 0.15),
                  legend.direction = "vertical",
                  panel.grid.minor = element_blank(),
                  panel.grid.major = element_blank(),
@@ -338,7 +338,7 @@ p_gdp_divide <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-3.9, 4.7), expand = c(0, 0)) +  
+  ggplot2::scale_y_continuous(limits = c(-2.8, 4.1), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(10)[c(1, 8)]) + 
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
