@@ -148,6 +148,27 @@ p_gdp <- p_dat %>%
                  plot.margin = margin(unit(c(5.5, 12, 5.5, 5.5), "points")))
 
 
+# compute differences between mining and non-mining for mention in manuscript text
+period <- c(2004:2011)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  dplyr::group_by(mining) %>%
+  dplyr::summarise(mean_growth = mean(gdp_capita_growth_real)) %>%
+  tidyr::spread(key = "mining", value = "mean_growth") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
+period <- c(2004)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  tidyr::spread(key = "mining", value = "gdp_capita_growth_real") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
+period <- c(2010)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  tidyr::spread(key = "mining", value = "gdp_capita_growth_real") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
+period <- c(2013:2016)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  dplyr::group_by(mining) %>%
+  dplyr::summarise(mean_growth = mean(gdp_capita_growth_real)) %>%
+  tidyr::spread(key = "mining", value = "mean_growth") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
 
 # Figure 2b industrial mining impact estimates ----------------------------
 

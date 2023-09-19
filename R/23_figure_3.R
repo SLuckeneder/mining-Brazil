@@ -21,12 +21,11 @@ load("data/raw/geobr/selected_mun.Rdata")
 # land cover and mining data
 tidy_data <- full_data %>% 
   dplyr::filter(cod_municipio_long %in% selected_mun) %>%
-  dplyr::select(cod_municipio_long, year, AREA_mun, natural_forest_loss, mining) %>%
-  dplyr::mutate(natural_forest_loss_ha_km2 = natural_forest_loss / AREA_mun) %>%
+  dplyr::select(cod_municipio_long, year, AREA_mun, natural_forest_loss, natural_forest_loss_ha_km2, mining) %>%
   dplyr::mutate(mining = ifelse(mining > 0 , TRUE, FALSE)) %>%
   dplyr::filter(year > 2000)
 
-# prepare data for Figure 3b: total forest loss
+# look at total forest loss
 p_dat <- tidy_data %>% 
   dplyr::group_by(year, mining) %>%
   dplyr::summarize(natural_forest_loss = sum(natural_forest_loss) / 100) 
@@ -110,7 +109,7 @@ p_ts_relative <- p_dat %>%
   ggplot2::labs(title = NULL, x = NULL, y = NULL, colour = NULL) +
   ggplot2::guides(fill = FALSE) +
   ggplot2::theme_bw() +
-  ggplot2::theme(axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+  ggplot2::theme(axis.text.x = element_text(size = 14, vjust = 0),
                  axis.text.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
                  legend.title = element_text(size = 16, face = "bold"),
@@ -119,37 +118,19 @@ p_ts_relative <- p_dat %>%
                  panel.grid.major.x = element_blank(),
                  panel.grid.minor.x = element_blank(),
                  panel.grid.major.y = element_blank(),
-                 panel.grid.minor.y = element_blank()) +
+                 panel.grid.minor.y = element_blank(),
+                 plot.margin = margin(0.5,1,0.5,0.7, "cm")) +
   ggplot2::guides(colour = guide_legend(title = expression(bold(Forest~loss~(ha/km^2))), title.position = "top", title.hjust = 0.5))
 
+# compute differences between mining and non-mining for mention in manuscript text
+period <- c(2003:2020)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  dplyr::group_by(mining) %>%
+  dplyr::summarise(mean_forest_loss_ha_km2 = mean(average_forest_loss_ha_km2)) %>%
+  tidyr::spread(key = "mining", value = "mean_forest_loss_ha_km2") %>%
+    dplyr::mutate(difference_ha_km2 = `Mining municipalities` - `Non-mining municipalities`) %>%
+    dplyr::mutate(difference_perc = (`Mining municipalities` - `Non-mining municipalities`) / `Non-mining municipalities` * 100)
 
-# Figure 3b
-p_ts_absolute <- tidy_data %>%
-  dplyr::group_by(mining, year) %>%
-  dplyr::filter(year > 2002) %>%
-  dplyr::summarise(natural_forest_loss = sum(natural_forest_loss) / 100000) %>% # ha to thousand km2
-  ggplot2::ggplot(aes(x = as.numeric(year), y = natural_forest_loss, fill = mining)) +
-  ggplot2::geom_bar(stat = "identity", width = 0.8, color = "black", alpha = 0.6) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(6), limits= c(0, 34), expand = c(0,0)) +
-  ggplot2::scale_x_continuous(breaks=seq(2004, 2020, 2), expand = c(0, 0)) +
-  ggplot2::scale_fill_manual(values = viridis::plasma(7)[c(6, 2)], labels = c("Non-mining municipalities", "Mining municipalities")) + 
-  ggplot2::labs(title = NULL, x = NULL, y = NULL) +
-  ggplot2::theme_bw() +
-  ggplot2::theme(axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
-                 axis.text.y = element_text(size = 14),
-                 legend.text = element_text(size = 13),
-                 legend.title = element_text(size = 15),
-                 legend.position = c(0.58, 0.8),
-                 legend.direction = "vertical",
-                 legend.background = element_rect(fill='transparent'),
-                 panel.grid.major.x = element_blank(),
-                 panel.grid.minor.x = element_blank(),
-                 panel.grid.major.y = element_blank(),
-                 panel.grid.minor.y = element_blank()) +
-  ggplot2::guides(fill = guide_legend(title = expression(bold(Forest~loss~(thousand~km^2))), title.position = "top", title.hjust = 0.5, reverse = TRUE))
-
-# merge
-p_ts_forest_loss <- cowplot::plot_grid(p_ts_relative, p_ts_absolute, align = "h", nrow = 1, rel_widths = c(2/3, 1/3), labels = c("a", "b"), label_size = 18)
 
 # compute differences between mining and non-mining
 period <- c(2003:2020)
@@ -570,8 +551,8 @@ p_absolute_garimpo <- cowplot::plot_grid(p_absolute_year, p_absolute_divide, ali
 
 # merge -------------------------------------------------------------------
 
-p_merge <- cowplot::plot_grid(p_ts_forest_loss, p_relative_industrial, p_relative_garimpo, p_absolute_industrial, p_absolute_garimpo, 
-                              nrow = 5, rel_heights = c(1/5, 1/5, 1/5, 1/5, 1/5), labels = c("", "c", "d", "e", "f"), label_size = 18) +
+p_merge <- cowplot::plot_grid(p_ts_relative, p_relative_industrial, p_relative_garimpo, p_absolute_industrial, p_absolute_garimpo, 
+                              nrow = 5, rel_heights = c(1/5, 1/5, 1/5, 1/5, 1/5), labels = c("a", "b", "c", "d", "e"), label_size = 18) +
   theme(plot.background = element_rect(fill = "white", colour = NA))
 
 ggplot2::ggsave("figure_3.png",
