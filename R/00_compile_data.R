@@ -138,7 +138,8 @@ M <- M %>% dplyr::select(3, 5, 4, 1, 35, 2, 117, 114:116, 113, 6:12, 118:122, 10
 summary(M)
 write.csv(M, file = paste0("data/full_data_", from_yr, "-", to_yr+window_yrs, "_", window_yrs, "y.csv"), row.names = FALSE)
 
-
+# count municipalities for mention in manuscript text
+length(unique(M$cod_municipio_long))
 
   
 

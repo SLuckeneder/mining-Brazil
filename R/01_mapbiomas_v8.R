@@ -13,7 +13,6 @@ if(!file.exists(paste0("data/intermediary/mapbiomas_v8_2000_2022.Rdata"))){
   load("data/raw/geobr/selected_mun.Rdata")
   
   years <- c(2000:2020)
-  window_yrs <- 5 # 5-year window for average land use change computations
 
   # Land Use ----------------------------------------------------------------
 
