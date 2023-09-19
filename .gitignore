@@ -48,8 +48,10 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# ignore data folder
-data/
+# ignore data folder, except main data matrix
+!data/
+data/*
+!data/full_data_2000-2020_5y.csv
 
 # ignore figures folder
 figures/
