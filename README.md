@@ -4,7 +4,7 @@ This repository contains the R scripts to reproduce results from "Brazilian mini
 
 ## Usage
 
-All scripts related to data compilation (`00_compile_data.R` and herein sourced `01_*.R`) require manually downloaded raw data (see respective `01_*.R` scripts). Alternatively, users can move directly to the models (`10_run_spatial_models.R` and herein sourced `11_lndetPaceBarry.R` and `12_run_*.R`), as `10_run_spatial_models.R` will automatically download ready-to-use datasets from ZENODO-LINK-HERE and store it in `./model_input` and `./W`.
+All scripts related to data compilation (`00_compile_data.R` and herein sourced `01_*.R`) automatically download and process raw data (see respective `01_*.R` scripts). Alternatively, users can move directly to the models (`10_run_spatial_models.R` and herein sourced `11_lndetPaceBarry.R` and `12_run_*.R`), as `10_run_spatial_models.R` will automatically download ready-to-use datasets from this GitHub repository.
 
 `10_run_spatial_models.R` runs 6 Bayesian Spatial Durbin Models estimating municipality-level mining impacts on per capita GDP, relative and absolute forest loss for yearly and pooled (pre-2010 and post-2010) effects. MCMC draws of estimated parameters are stored as Rdata in `./data/intermediary/MCMC_draws`. Related direct, indirect and total impact estimates of the spatial models are stored in `./data/impact_estimates/draws` and summarised as csv files in `./data/impact_estimates/summaries`. `11_lndetPaceBarry.R` provides a function to approximate the log-determinant of positive-definite spatial projection matrices of the form $(I - \rho W)$ as proposed by Barry and Pace (1999) and `13_geweke_statistics.R` shows convergence of the samplers using diagnostics proposed by Geweke (1992).
 
@@ -14,7 +14,7 @@ All scripts related to data compilation (`00_compile_data.R` and herein sourced 
 
 `40_figures_SI.R` generates the respective figures for the supplementary information, saved as PNG files in `./figures/SI`.
 
-`50_tables_SI.R` generates LaTeX code for the tables shown in the supplementary information.
+`50_tables_SI_latex.R` generates LaTeX code for the tables shown in the supplementary information.
 
 ## References
 
