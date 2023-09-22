@@ -157,7 +157,7 @@ p_map_forest_relative_2005 <- maps_dat %>%
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
   ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
-  ggplot2::labs(fill = "Forest loss 2005 \n(ha per km2 natural \nforest formation)") +
+  ggplot2::labs(fill = "Forest loss 2005 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
                  legend.text=element_text(size=17),
@@ -170,7 +170,7 @@ p_map_forest_relative_2010 <- maps_dat %>%
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
   ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
-  ggplot2::labs(fill = "Forest loss 2010 \n(ha per km2 natural \nforest formation)") +
+  ggplot2::labs(fill = "Forest loss 2010 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
                  legend.text=element_text(size=17),
@@ -183,7 +183,7 @@ p_map_forest_relative_2015 <- maps_dat %>%
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
   ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
-  ggplot2::labs(fill = "Forest loss 2015 \n(ha per km2 natural \nforest formation)") +
+  ggplot2::labs(fill = "Forest loss 2015 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
                  legend.text=element_text(size=17),
