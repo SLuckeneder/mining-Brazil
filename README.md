@@ -1,6 +1,6 @@
 # Brazilian mining impacts - A Bayesian Spatial Durbin Model
 
-This repository contains the R scripts and data to reproduce results from "Transient economic benefit and persistent forest loss: legacy of the Brazilian mining sector".
+This repository contains the R scripts and data to reproduce results from "Transient economic benefit and persistent forest loss: legacy of the Brazilian mining sector". 
 
 ## Usage
 
