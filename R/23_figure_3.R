@@ -34,11 +34,14 @@ p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, 
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = stringr::str_sub(Variable,-4,-1),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Impact in mining municipalities", "Spillover effect")) %>%
+                # impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
+# p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
+p_dat$gr <- factor(p_dat$gr, levels = c("Impact in mining municipalities Industrial", "Impact in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
+
 
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
@@ -58,7 +61,7 @@ p_gdp_year <- p_dat %>%
                  axis.text.y = element_text(size = 14),
                  axis.title.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.15, 0.2),
+                 legend.position = c(0.2, 0.2),
                  legend.direction = "vertical",
                  panel.grid.minor = element_blank(),
                  panel.grid.major = element_blank(),
@@ -81,11 +84,11 @@ p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, 
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Impact in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
+p_dat$gr <- factor(p_dat$gr, levels = c("Impact in mining municipalities Industrial", "Impact in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
@@ -133,11 +136,11 @@ p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, 
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = stringr::str_sub(Variable,-4,-1),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Impact in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
+p_dat$gr <- factor(p_dat$gr, levels = c("Impact in mining municipalities Industrial", "Impact in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
@@ -180,11 +183,11 @@ p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, 
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Impact in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
+p_dat$gr <- factor(p_dat$gr, levels = c("Impact in mining municipalities Industrial", "Impact in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 

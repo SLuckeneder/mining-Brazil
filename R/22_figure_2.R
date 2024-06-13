@@ -163,6 +163,14 @@ period <- c(2010)
 p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
   tidyr::spread(key = "mining", value = "gdp_capita_growth_real") %>%
   dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
+period <- c(2015)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  tidyr::spread(key = "mining", value = "gdp_capita_growth_real") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
+period <- c(2016)
+p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
+  tidyr::spread(key = "mining", value = "gdp_capita_growth_real") %>%
+  dplyr::mutate(difference_perc_pts = `Mining municipalities (right axis)` - `Non-mining municipalities (right axis)`)
 period <- c(2013:2016)
 p_dat %>% dplyr::filter(year %in% period, !is.na(mining)) %>%
   dplyr::group_by(mining) %>%
