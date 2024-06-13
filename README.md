@@ -8,7 +8,7 @@ All scripts related to data compilation (`00_compile_data.R` and herein sourced 
 
 `10_run_spatial_models.R` runs 6 Bayesian Spatial Durbin Models estimating municipality-level mining impacts on per capita GDP, relative and absolute forest loss for yearly and pooled (pre-2010 and post-2010) effects. MCMC draws of estimated parameters are stored as Rdata in `./data/intermediary/MCMC_draws`. Related direct, indirect and total impact estimates of the spatial models are stored in `./data/impact_estimates/draws` and summarised as csv files in `./data/impact_estimates/summaries`. `11_lndetPaceBarry.R` provides a function to approximate the log-determinant of positive-definite spatial projection matrices of the form $(I - \rho W)$ as proposed by Barry and Pace (1999) and `13_geweke_statistics.R` shows convergence of the samplers using diagnostics proposed by Geweke (1992).
 
-`20_figures_main.R` (sourcing `21_figure_1.R`, `22_figure_2.R` and `23_figure_3.R`) generates the respective main text figures, saved as PNG files in `./figures/main_text`.
+`20_figures_main.R` (sourcing `21_figure_1.R`, `22_figure_2.R`, `23_figure_3.R`, `24_figure_4.R` and `25_figure_5.R`) generates the respective main text figures, saved as PNG files in `./figures/main_text`.
 
 `30_run_models_SI` runs models presented in the supplementary information.
 
