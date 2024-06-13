@@ -10,3 +10,9 @@ source("R/22_figure_2.R")
 
 # Figure 3
 source("R/23_figure_3.R")
+
+# Figure 4
+source("R/21_figure_4.R")
+
+# Figure 5
+source("R/21_figure_5.R")
