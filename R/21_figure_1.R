@@ -141,7 +141,7 @@ p_map_2020 <- mining_data %>%
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
   ggplot2::geom_sf(data = legal_amazon , fill = NA, colour = "red", alpha = 0.5, lwd = 0.3) +
   ggplot2::geom_sf(data = minas_gerais , fill = NA, colour = "red", alpha = 0.5, lwd = 0.3) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::geom_curve(aes(
     xend = -49.903966184516804, x = -46,
     yend = 1.6296791814468312, y = 1.0998414027864398), 
@@ -186,7 +186,7 @@ p_map_growth <- mining_data %>%
   ggplot2::scale_fill_gradient2(low = "#7fbc41", high = "#c51b7d", na.value = "white",
                                 breaks = c(-10, -5, 0, 5, 10), labels = c("less than -10%", "-5%", "0%", "5%", "more than 10%")) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Average annual change \nof mining area (2005-2020)\n") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -265,4 +265,17 @@ ggplot2::ggsave("figure_1.png",
                 scale = 1, width = 600, height = 250, units = "mm")
 
 
+# for presentation --------------------------------------------------------
+
+if (!dir.exists("figures/presentations")){dir.create("figures/presentations", recursive = TRUE)}
+
+ggplot2::ggsave("figure_1a.png",
+                plot = p_map_2020, device = "png",
+                path = paste0("./figures/presentations"),
+                scale = 1, width = 250, height = 250, units = "mm")
+
+ggplot2::ggsave("figure_1b.png",
+                plot = p_map_growth, device = "png",
+                path = paste0("./figures/presentations"),
+                scale = 1, width = 250, height = 250, units = "mm")
 
