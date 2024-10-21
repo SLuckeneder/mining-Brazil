@@ -101,12 +101,12 @@ p_ts_relative <- p_dat %>%
   ggplot2::ggplot(aes(x = d)) + 
   ggplot2::geom_line( aes(y = average_forest_loss_ha_km2, group = mining, colour = mining), size = 1) +
   ggplot2::geom_ribbon(data = ribbons, aes(ymin = ymin, ymax = ymax, fill = fill), alpha = 0.1) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(8), limits = c(0, 0.34), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(8), limits = c(0, 0.29), expand = c(0, 0)) +
   scale_x_continuous(breaks=c(4, 6, 8, 10, 12, 14, 16, 18, 20), limits = c(3, 20),
                      labels= c("2004", "2006", "2008", "2010", "2012", "2014", "2016", "2018", "2020"), expand = c(0, 0)) +
   ggplot2::scale_color_manual(values = viridis::plasma(7)[c(2, 6)]) + 
   ggplot2::scale_fill_manual(values = viridis::plasma(7)[c(2, 6)], na.translate = F) +
-  ggplot2::labs(title = NULL, x = NULL, y = NULL, colour = NULL) +
+  ggplot2::labs(title = NULL, x = NULL, y = expression(ha/km^2), colour = NULL) +
   ggplot2::guides(fill = FALSE) +
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14, vjust = 0),
@@ -120,7 +120,7 @@ p_ts_relative <- p_dat %>%
                  panel.grid.major.y = element_blank(),
                  panel.grid.minor.y = element_blank(),
                  plot.margin = margin(0.5,1,0.5,0.7, "cm")) +
-  ggplot2::guides(colour = guide_legend(title = expression(bold(Forest~loss~(ha/km^2))), title.position = "top", title.hjust = 0.5))
+  ggplot2::guides(colour = guide_legend(title = "Forest loss", title.position = "top", title.hjust = 0.5))
 
 # compute differences between mining and non-mining for mention in manuscript text
 period <- c(2003:2020)
