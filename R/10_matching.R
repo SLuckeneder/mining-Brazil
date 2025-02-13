@@ -13,9 +13,6 @@ source("R/12_run_cem_SI.R")
 # summary tables comparing sample balance
 source("R/13_matching_balances.R")
 
-# figures
-source("R/95_figures_matching.R")
-
 
 
 
