@@ -4,10 +4,10 @@ library(dplyr)
 library(xtable)
 
 # count observations (need to recall full data matrix and filter for 2005-2015)
-if(! file.exists("data/full_data_2000-2020_5y.csv")){source("R/00_compile_data.R")}
-M <- read.csv2(file = "data/full_data_2000-2020_5y.csv", sep = ",", stringsAsFactors = FALSE) # read full data matrix
-M <- M %>% dplyr::filter(year %in% c(2005:2015))
-observations <- data.frame("Variables" = "Observations", "2.5\\%" = nrow(M), "PM" = NA, "97.5\\%" = NA, " 2.5\\%" = NA, " PM" = NA, " 97.5\\%" = NA)
+# read matched data
+M_matched_garimpo <- read.csv(paste0("data/cem/cem_results/cem_baseline_data_garimpo_2005-2020_5y.csv"))
+M_matched_garimpo <- M_matched_garimpo %>% dplyr::filter(year %in% c(2005:2015))
+observations <- data.frame("Variables" = "Observations", "2.5\\%" = nrow(M_matched_garimpo), "PM" = NA, "97.5\\%" = NA, " 2.5\\%" = NA, " PM" = NA, " 97.5\\%" = NA)
 colnames(observations) <- c("Variables", "2.5\\%", "PM", "97.5\\%", " 2.5\\%", " PM", " 97.5\\%")
 
 # build concordance for variable names
@@ -32,24 +32,24 @@ long_name <- c("Industrial mining 2005", "Industrial mining 2006", "Industrial m
                "Garimpo mining 2011", "Garimpo mining 2012", "Garimpo mining 2013", "Garimpo mining 2014", "Garimpo mining 2015", 
                "Garimpo mining $\\times$ pre 2010", "Garimpo mining $\\times$ since 2010",
                "LUC$^{Agriculture, Forest\ Plantation}$","LUC$^{Agriculture, Grassland}$","LUC$^{Agriculture, Pasture}$", "LUC$^{Natural\ Forest, Agriculture}$","LUC$^{Natural\ Forest, Forest\ Plantation}$",
-                "LUC$^{Natural\ Forest, Grassland}$","LUC$^{Natural\ Forest, Pasture}$", "LUC$^{Natural\ Forest, Agriculture}$",
-                "LUC$^{Natural\ Forest, Forest\ Plantation}$","LUC$^{Natural\ Forest, Grassland}$","LUC$^{Natural\ Forest, Pasture}$", "LUC$^{Forest\ Plantation, Agriculture}$","LUC$^{Forest\ Plantation, Grassland}$",
-                "LUC$^{Forest\ Plantation, Pasture}$","LUC$^{Grassland, Agriculture}$","LUC$^{Grassland, Forest\ Plantation}$","LUC$^{Grassland, Pasture}$",
-                "LUC$^{Pasture, Agriculture}$","LUC$^{Pasture, Forest\ Plantation}$","LUC$^{Pasture, Grassland}$",
-                "Initial agriculture","Initial natural forest","Initial natural forest","Initial forest plantation","Initial grassland","Initial pasture","Initial income",
+               "LUC$^{Natural\ Forest, Grassland}$","LUC$^{Natural\ Forest, Pasture}$", "LUC$^{Natural\ Forest, Agriculture}$",
+               "LUC$^{Natural\ Forest, Forest\ Plantation}$","LUC$^{Natural\ Forest, Grassland}$","LUC$^{Natural\ Forest, Pasture}$", "LUC$^{Forest\ Plantation, Agriculture}$","LUC$^{Forest\ Plantation, Grassland}$",
+               "LUC$^{Forest\ Plantation, Pasture}$","LUC$^{Grassland, Agriculture}$","LUC$^{Grassland, Forest\ Plantation}$","LUC$^{Grassland, Pasture}$",
+               "LUC$^{Pasture, Agriculture}$","LUC$^{Pasture, Forest\ Plantation}$","LUC$^{Pasture, Grassland}$",
+               "Initial agriculture","Initial natural forest","Initial natural forest","Initial forest plantation","Initial grassland","Initial pasture","Initial income",
                "Human capital","Population growth","Population density","GVA agriculture","GVA industry","GVA services", "GPD growth", "Precipitation","Elevation",
                "$\\rho$", "Observations")
 concordance <- data.frame(raw_name, long_name)
 
 # E1 economic growth ------------------------------------------------------
 
-impacts_gdp_yearly <- list.files("data/impact_estimates/summaries/", pattern = "gdp_yearly")
-impacts_gdp_pooled <- list.files("data/impact_estimates/summaries/", pattern = "gdp_pooled")
+impacts_gdp_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "gdp_yearly_garimpo_baseline_")
+impacts_gdp_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "gdp_pooled_garimpo_baseline_")
 
 ### yearly estimates
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_gdp_yearly),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_gdp_yearly),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 
@@ -95,7 +95,7 @@ print(xtable::xtable(impacts,
 ### pooled estimates
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_gdp_pooled),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_gdp_pooled),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 
@@ -140,15 +140,15 @@ print(xtable::xtable(impacts,
 
 # E2 Forest loss ----------------------------------------------------------
 
-impacts_def_rel_yearly <- list.files("data/impact_estimates/summaries/", pattern = "def_rel_yearly")
-impacts_def_rel_pooled <- list.files("data/impact_estimates/summaries/", pattern = "def_rel_pooled")
-impacts_def_abs_yearly <- list.files("data/impact_estimates/summaries/", pattern = "def_abs_yearly")
-impacts_def_abs_pooled <- list.files("data/impact_estimates/summaries/", pattern = "def_abs_pooled")
+impacts_def_rel_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "rel_yearly_garimpo_baseline_")
+impacts_def_rel_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "rel_pooled_garimpo_baseline_")
+impacts_def_abs_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "abs_yearly_garimpo_baseline_")
+impacts_def_abs_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/", pattern = "abs_pooled_garimpo_baseline_")
 
 ### yearly estimates relative
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_def_rel_yearly),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_def_rel_yearly),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 
@@ -194,7 +194,7 @@ print(xtable::xtable(impacts,
 ### pooled estimates relative
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_def_rel_pooled),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_def_rel_pooled),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 
@@ -240,7 +240,7 @@ print(xtable::xtable(impacts,
 ### yearly estimates absolute
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_def_abs_yearly),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_def_abs_yearly),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 
@@ -286,7 +286,7 @@ print(xtable::xtable(impacts,
 ### pooled estimates absolute
 
 # read output Excel
-impacts_raw <- read.delim(file.path("data/impact_estimates/summaries/", impacts_def_abs_pooled),  sep = ",") 
+impacts_raw <- read.delim(file.path("data/cem/sdm_impact_estimates/summaries/", impacts_def_abs_pooled),  sep = ",") 
 rho <- impacts_raw %>% dplyr::filter(Variable == "Rho:")
 impacts_raw <- impacts_raw %>%
   dplyr::filter(!is.na( Indirect.1.)) 

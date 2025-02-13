@@ -20,30 +20,46 @@ variables_pooled <- c(variables_industrial_pooled, variables_garimpo_pooled)
 
 # F2 3-year growth windows ------------------------------------------------
 
-impacts_yearly <- list.files("data/impact_estimates/summaries/SI/", pattern = "gdp_yearly_2005-2016_3y")
-impacts_pooled <- list.files("data/impact_estimates/summaries/SI/", pattern = "gdp_pooled_2005-2016_3y")
-
-### yearly estimates
-p_dat <- read.csv(file = paste0("data/impact_estimates/summaries/SI/", impacts_yearly))
+### yearly estimates industrial
+impacts_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_yearly_industrial_3y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_yearly))
 
 p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_yearly) %>%
   dplyr::mutate(freq = "yearly") %>%
-  dplyr::mutate(unit = "Impact of industrial and garimpo mining on GDP per capita growth (3-year window)") 
+  dplyr::mutate(unit = "Effect of industrial and garimpo mining on GDP per capita growth (3-year window)") 
 
-p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+p_dat_industrial <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
   tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
   dplyr::mutate(value = as.numeric(value)) %>%
   tidyr::spread(key = "CI", value = "value") %>%
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = stringr::str_sub(Variable,-4,-1),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
+### yearly estimates garimpo
+impacts_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_yearly_garimpo_3y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_yearly))
+
+p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_yearly) %>%
+  dplyr::mutate(freq = "yearly") %>%
+  dplyr::mutate(unit = "Effect of industrial and garimpo mining on GDP per capita growth (3-year window)") 
+
+p_dat_garimpo <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+  tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
+  dplyr::mutate(value = as.numeric(value)) %>%
+  tidyr::spread(key = "CI", value = "value") %>%
+  dplyr::mutate(Type = substr(Variable, 8, 11),
+                Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
+                Variable = stringr::str_sub(Variable,-4,-1),
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
+  dplyr::mutate(gr = paste(impact, Type))
+
+### merge
+p_dat <- dplyr::bind_rows(p_dat_industrial, p_dat_garimpo)
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
-
-
+p_dat$gr <- factor(p_dat$gr, levels = c("Effect in mining municipalities Industrial", "Effect in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
 p_gdp3y_year <- p_dat %>%
@@ -54,7 +70,7 @@ p_gdp3y_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::geom_hline(yintercept=0) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
-  ggplot2::labs(x = NULL, y = "GDP impact estimate") +
+  ggplot2::labs(x = NULL, y = "Effect estimate and 95% CI") +
   ggplot2::scale_y_continuous(limits = c(-4.9, 6.2), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(5)[c(1, 3)]) +
   ggplot2::theme_bw() +
@@ -62,7 +78,7 @@ p_gdp3y_year <- p_dat %>%
                  axis.text.y = element_text(size = 14),
                  axis.title.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.82, 0.88),
+                 legend.position = c(0.7, 0.88),
                  legend.direction = "horizontal",
                  legend.spacing.y = unit(-11, "pt"),
                  legend.title =  element_blank(),   
@@ -75,27 +91,46 @@ p_gdp3y_year <- p_dat %>%
 
 
 
-### pre/post 2010 estimates
-p_dat <- read.csv(file = paste0("data/impact_estimates/summaries/SI/", impacts_pooled))
+### pre/post 2010 estimates industrial
+impacts_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_pooled_industrial_3y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_pooled))
 
 p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_pooled) %>%
   dplyr::mutate(freq = "divide") %>%
   dplyr::mutate(unit = "Pooled effects") 
 
-p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+p_dat_industrial <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
   tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
   dplyr::mutate(value = as.numeric(value)) %>%
   tidyr::spread(key = "CI", value = "value") %>%
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
+### pre/post 2010 estimates garimpo
+impacts_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_pooled_garimpo_3y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_pooled))
+
+p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_pooled) %>%
+  dplyr::mutate(freq = "divide") %>%
+  dplyr::mutate(unit = "Pooled effects") 
+
+p_dat_garimpo <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+  tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
+  dplyr::mutate(value = as.numeric(value)) %>%
+  tidyr::spread(key = "CI", value = "value") %>%
+  dplyr::mutate(Type = substr(Variable, 8, 11),
+                Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
+                Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
+  dplyr::mutate(gr = paste(impact, Type))
+
+### merge
+p_dat <- dplyr::bind_rows(p_dat_industrial, p_dat_garimpo)
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
-
-
+p_dat$gr <- factor(p_dat$gr, levels = c("Effect in mining municipalities Industrial", "Effect in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
 p_gdp3y_divide <- p_dat %>%
@@ -127,33 +162,49 @@ p_gdp3y_divide <- p_dat %>%
 
 # F2 7-year growth windows ------------------------------------------------
 
-impacts_yearly <- list.files("data/impact_estimates/summaries/SI/", pattern = "gdp_yearly_2005-2013_7y")
-impacts_pooled <- list.files("data/impact_estimates/summaries/SI/", pattern = "gdp_pooled_2005-2013_7y")
-
-### yearly estimates
-p_dat <- read.csv(file = paste0("data/impact_estimates/summaries/SI/", impacts_yearly))
-
-p_dat_temp <- data.frame("Variable" = c("mining_industrial_2014", "mining_industrial_2015", "mining_industrial_2016"))
-p_dat <- dplyr::bind_rows(p_dat, p_dat_temp); rm(p_dat_temp)
+### yearly estimates industrial
+impacts_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_yearly_industrial_7y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_yearly))
 
 p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_yearly) %>%
   dplyr::mutate(freq = "yearly") %>%
-  dplyr::mutate(unit = "Impact of industrial and garimpo mining on GDP per capita growth (7-year window)") 
+  dplyr::mutate(unit = "Effect of industrial and garimpo mining on GDP per capita growth (7-year window)") 
 
-p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+p_dat_industrial <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
   tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
   dplyr::mutate(value = as.numeric(value)) %>%
   tidyr::spread(key = "CI", value = "value") %>%
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = stringr::str_sub(Variable,-4,-1),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
+### yearly estimates garimpo
+impacts_yearly <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_yearly_garimpo_7y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_yearly))
+
+p_dat_temp <- data.frame("Variable" = c("mining_industrial_2014", "mining_industrial_2015", "mining_industrial_2016"))
+p_dat <- dplyr::bind_rows(p_dat, p_dat_temp); rm(p_dat_temp)
+
+p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_yearly) %>%
+  dplyr::mutate(freq = "yearly") %>%
+  dplyr::mutate(unit = "Effect of industrial and garimpo mining on GDP per capita growth (7-year window)") 
+
+p_dat_garimpo <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+  tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
+  dplyr::mutate(value = as.numeric(value)) %>%
+  tidyr::spread(key = "CI", value = "value") %>%
+  dplyr::mutate(Type = substr(Variable, 8, 11),
+                Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
+                Variable = stringr::str_sub(Variable,-4,-1),
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
+  dplyr::mutate(gr = paste(impact, Type))
+
+### merge
+p_dat <- dplyr::bind_rows(p_dat_industrial, p_dat_garimpo)
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
-
-
+p_dat$gr <- factor(p_dat$gr, levels = c("Effect in mining municipalities Industrial", "Effect in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
 p_gdp7y_year <- p_dat %>%
@@ -164,17 +215,17 @@ p_gdp7y_year <- p_dat %>%
                          position=position_dodge(.5), size = 1) +
   ggplot2::geom_hline(yintercept=0) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
-  ggplot2::labs(x = NULL, y = "GDP impact estimate") +
-  ggplot2::scale_y_continuous(limits = c(-1.9, 2.5), expand = c(0, 0)) +
+  ggplot2::labs(x = NULL, y = "Effect estimate and 95% CI") +
+  ggplot2::scale_y_continuous(limits = c(-1.9, 3.7), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(5)[c(1, 3)]) +
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
                  axis.title.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
-                 legend.position = c(0.87, 0.76),
-                 legend.direction = "vertical",
-                 legend.spacing.y = unit(-3, "pt"),
+                 legend.position = c(0.7, 0.88),
+                 legend.direction = "horizontal",
+                 legend.spacing.y = unit(-11, "pt"),
                  legend.title =  element_blank(),   
                  legend.background = element_rect(fill='transparent'),
                  panel.grid.minor = element_blank(),
@@ -185,27 +236,46 @@ p_gdp7y_year <- p_dat %>%
 
 
 
-### pre/post 2010 estimates
-p_dat <- read.csv(file = paste0("data/impact_estimates/summaries/SI/", impacts_pooled))
+### pre/post 2010 estimates industrial
+impacts_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_pooled_industrial_7y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_pooled))
 
 p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_pooled) %>%
   dplyr::mutate(freq = "divide") %>%
   dplyr::mutate(unit = "Pooled effects") 
 
-p_dat <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+p_dat_industrial <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
   tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
   dplyr::mutate(value = as.numeric(value)) %>%
   tidyr::spread(key = "CI", value = "value") %>%
   dplyr::mutate(Type = substr(Variable, 8, 11),
                 Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
                 Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
-                impact = ifelse(impact == "Direct", "Direct impact", "Indirect impact")) %>%
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
   dplyr::mutate(gr = paste(impact, Type))
 
+### pre/post 2010 estimates garimpo
+impacts_pooled <- list.files("data/cem/sdm_impact_estimates/summaries/SI/", pattern = "gdp_pooled_garimpo_7y")
+p_dat <- read.csv(file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", impacts_pooled))
+
+p_dat <- p_dat %>% dplyr::filter(Variable %in% variables_pooled) %>%
+  dplyr::mutate(freq = "divide") %>%
+  dplyr::mutate(unit = "Pooled effects") 
+
+p_dat_garimpo <- p_dat %>% tidyr::gather(key = "CI", value = "value", -Variable, -freq, -unit) %>%
+  tidyr::separate(CI, c("impact", "CI"), "\\.") %>%
+  dplyr::mutate(value = as.numeric(value)) %>%
+  tidyr::spread(key = "CI", value = "value") %>%
+  dplyr::mutate(Type = substr(Variable, 8, 11),
+                Type = ifelse(Type == "gari", "Garimpo", "Industrial"),
+                Variable = ifelse(Variable %in% c("mining_industrial_x_pre_2010", "mining_garimpo_x_pre_2010"), "Pre 2010", "Since 2010"),
+                impact = ifelse(impact == "Direct", "Effect in mining municipalities", "Spillover effect")) %>%
+  dplyr::mutate(gr = paste(impact, Type))
+
+### merge
+p_dat <- dplyr::bind_rows(p_dat_industrial, p_dat_garimpo)
 p_dat$Type <- factor(p_dat$Type, levels = c("Industrial", "Garimpo"))
-p_dat$gr <- factor(p_dat$gr, levels = c("Direct impact Industrial", "Direct impact Garimpo", "Indirect impact Industrial", "Indirect impact Garimpo"))
-
-
+p_dat$gr <- factor(p_dat$gr, levels = c("Effect in mining municipalities Industrial", "Effect in mining municipalities Garimpo", "Spillover effect Industrial", "Spillover effect Garimpo"))
 colnames(p_dat) <- c("Variable", "Pool", "Unit", "Impact", "CI.1", "CI.2.5", "CI.5", "CI.95", "CI.97.5", "CI.99", "Mean", "Type", "gr")
 
 p_gdp7y_divide <- p_dat %>%
@@ -217,7 +287,7 @@ p_gdp7y_divide <- p_dat %>%
   ggplot2::geom_hline(yintercept=0) +
   ggplot2::facet_wrap(Unit~., scales = "free_y") +
   ggplot2::labs(x = NULL, y = NULL) +
-  ggplot2::scale_y_continuous(limits = c(-1.9, 2.5), expand = c(0, 0)) +
+  ggplot2::scale_y_continuous(limits = c(-1.9, 3.7), expand = c(0, 0)) +
   ggplot2::scale_color_manual(name = NULL, values =  viridis::viridis(5)[c(1, 3)]) +
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14),
@@ -246,3 +316,20 @@ ggplot2::ggsave("figure_SI_growth_windows.png",
                 plot = p_merge, device = "png",
                 path = paste0("./figures/SI"),
                 scale = 1, width = 350, height = 250, units = "mm")
+
+
+# # for thesis --------------------------------------------------------------
+# 
+# 
+# ### year and pre/post 2010 divide
+# p_gdp3y <- cowplot::plot_grid(p_gdp3y_year, p_gdp3y_divide, align = "h", nrow = 1, rel_widths = c(3/4, 1/4))
+# p_gdp7y <- cowplot::plot_grid(p_gdp7y_year, p_gdp7y_divide, align = "h", nrow = 1, rel_widths = c(3/4, 1/4))
+# 
+# p_merge <- cowplot::plot_grid(p_gdp3y, p_gdp7y, nrow = 2, rel_heights = c(1/2, 1/2), labels = c("A", "B"), label_size = 18) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# 
+# ggplot2::ggsave("figure_SI_growth_windows.png",
+#                 plot = p_merge, device = "png",
+#                 path = paste0("./figures/thesis"),
+#                 scale = 1, width = 350, height = 250, units = "mm")
+# 

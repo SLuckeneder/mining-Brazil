@@ -95,7 +95,7 @@ p_map_gdp_growth_2005 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c(viridis::cividis(5, direction = -1), "white"),
                              labels = c("< 0%", "0% to 5%", "5% to 10%", "10% to 15%", "> 15%"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita \ngrowth, 2005-2010") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -111,7 +111,7 @@ p_map_gdp_growth_2010 <- maps_dat %>%
                              labels = c("< 0%", "0% to 5%", "5% to 10%", "10% to 15%", "> 15%"), 
                              na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita \ngrowth, 2010-2015") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -126,7 +126,7 @@ p_map_gdp_growth_2015 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c(viridis::cividis(5, direction = -1), "white"),
                              labels = c("< 0%", "0% to 5%", "5% to 10%", "10% to 15%", "> 15%"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita \ngrowth, 2015-2020") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -156,7 +156,7 @@ p_map_forest_relative_2005 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2005 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -169,7 +169,7 @@ p_map_forest_relative_2010 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2010 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -182,7 +182,7 @@ p_map_forest_relative_2015 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "viridis", direction = -1, breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2015 \n(ha per km2 of \nmunicipality area)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -210,7 +210,7 @@ p_map_forest_absolute_2005 <- maps_dat %>%
                              labels = c("0", "(0, 50]", "(50, 500]", "(500, 5,000]", "(5,000, 25,000]", "> 25,000"), 
                              na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2005 (ha)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -226,7 +226,7 @@ p_map_forest_absolute_2010 <- maps_dat %>%
                              labels = c("0", "(0, 50]", "(50, 500]", "(500, 5,000]", "(5,000, 25,000]", "> 25,000"), 
                              na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2010 (ha)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -242,7 +242,7 @@ p_map_forest_absolute_2015 <- maps_dat %>%
                              labels = c("0", "(0, 50]", "(50, 500]", "(500, 5,000]", "(5,000, 25,000]", "> 25,000"), 
                              na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Forest loss 2015 (ha)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -260,7 +260,7 @@ p_map_industrial_mining_2005 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#7fb3d5", "#154360"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Industrial mining \n2005") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -274,7 +274,7 @@ p_map_industrial_mining_2010 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#7fb3d5", "#154360"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Industrial mining \n2010") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -288,7 +288,7 @@ p_map_industrial_mining_2015 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#7fb3d5", "#154360"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Industrial mining \n2015") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -305,7 +305,7 @@ p_map_garimpo_mining_2005 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#f59c39", "#6a1818"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Garimpo mining \n2005") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -319,7 +319,7 @@ p_map_garimpo_mining_2010 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#f59c39", "#6a1818"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Garimpo mining \n2010") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -333,7 +333,7 @@ p_map_garimpo_mining_2015 <- maps_dat %>%
   ggplot2::scale_fill_manual(values = c("#f59c39", "#6a1818"),
                              labels = c("FALSE", "TRUE"), na.value = "white", na.translate = F) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Garimpo mining \n2015") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -364,7 +364,7 @@ p_map_share_forest_2005 <- maps_dat %>%
   ggplot2::scale_fill_distiller(palette = "Greens", trans = "reverse",
                                 breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Share natural forest \nformation 2005 (%)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -379,7 +379,7 @@ p_map_share_forest_2010 <- maps_dat %>%
   ggplot2::scale_fill_distiller(palette = "Greens", trans = "reverse", guide = guide_legend(reverse = TRUE),
                                 breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Share natural forest \nformation 2010 (%)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -394,7 +394,7 @@ p_map_share_forest_2015 <- maps_dat %>%
   ggplot2::scale_fill_distiller(palette = "Greens", trans = "reverse", guide = guide_legend(reverse = TRUE),
                                 breaks = mybreaks, labels = mylabels) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Share natural forest \nformation 2015 (%)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -411,7 +411,7 @@ p_map_gdp_capita_2005 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "mako", direction = -1) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita 2005 \n(million BRL, current \nPPP, log)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -424,7 +424,7 @@ p_map_gdp_capita_2010 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "mako", direction = -1) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita 2010 \n(million BRL, current \nPPP, log)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -437,7 +437,7 @@ p_map_gdp_capita_2015 <- maps_dat %>%
   ggplot2::geom_sf(lwd = 0.1) +
   viridis::scale_fill_viridis(option = "mako", direction = -1) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "GDP per capita 2015 \n(million BRL, current \nPPP, log)") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -474,6 +474,37 @@ ggplot2::ggsave("figure_SI_data_B.png",
                 plot = p_maps_B, device = "png",
                 path = paste0("./figures/SI"),
                 scale = 1, width = 600, height = 630, units = "mm")
+
+
+# # for thesis --------------------------------------------------------------
+# 
+# 
+# p_maps_A <- cowplot::plot_grid(p_map_industrial_mining_2005, p_map_industrial_mining_2010, p_map_industrial_mining_2015,
+#                                p_map_garimpo_mining_2005, p_map_garimpo_mining_2010, p_map_garimpo_mining_2015,
+#                                p_map_gdp_capita_2005, p_map_gdp_capita_2010, p_map_gdp_capita_2015,
+#                                p_map_gdp_growth_2005, p_map_gdp_growth_2010, p_map_gdp_growth_2015,
+#                                nrow = 4, 
+#                                labels = toupper(letters[c(1:12)]), label_size = 20) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# 
+# ggplot2::ggsave("figure_SI_data_A.png",
+#                 plot = p_maps_A, device = "png",
+#                 path = paste0("./figures/thesis"),
+#                 scale = 1, width = 600, height = 840, units = "mm")
+# 
+# 
+# 
+# p_maps_B <- cowplot::plot_grid(p_map_share_forest_2005, p_map_share_forest_2010, p_map_share_forest_2015, 
+#                                p_map_forest_absolute_2005, p_map_forest_absolute_2010, p_map_forest_absolute_2015,
+#                                p_map_forest_relative_2005, p_map_forest_relative_2010, p_map_forest_relative_2015,
+#                                nrow = 3, 
+#                                labels = toupper(letters[c(1:9)]), label_size = 20) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# 
+# ggplot2::ggsave("figure_SI_data_B.png",
+#                 plot = p_maps_B, device = "png",
+#                 path = paste0("./figures/thesis"),
+#                 scale = 1, width = 600, height = 630, units = "mm")
 
 
 

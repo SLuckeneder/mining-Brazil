@@ -90,7 +90,7 @@ p_map_biomes <- biomes %>%
   ggplot2::geom_sf(lwd = 0) +
   ggplot2::scale_fill_manual(values = pal_jco()(10)[c(1:5, 7)]) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = c(0, 0)) +
+  ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::labs(fill = "Biome") +
   theme_map() +
   ggplot2::theme(legend.position = c(0.17, 0.27),
@@ -141,4 +141,15 @@ ggplot2::ggsave("figure_SI_biomes.png",
                 plot = p_biomes, device = "png",
                 path = paste0("./figures/SI"),
                 scale = 1, width = 320, height = 200, units = "mm")
+
+
+# # for thesis --------------------------------------------------------------
+# 
+# p_biomes <- cowplot::plot_grid(p_map_biomes, p_bars_biomes, labels = c('A', 'B'), label_size = 18, rel_widths = c(1/2, 1/2), nrow = 1) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# 
+# ggplot2::ggsave("figure_SI_biomes.png",
+#                 plot = p_biomes, device = "png",
+#                 path = paste0("./figures/thesis"),
+#                 scale = 1, width = 320, height = 200, units = "mm")
 

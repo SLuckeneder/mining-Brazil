@@ -111,6 +111,7 @@ p_ts_relative <- p_dat %>%
   ggplot2::theme_bw() +
   ggplot2::theme(axis.text.x = element_text(size = 14, vjust = 0),
                  axis.text.y = element_text(size = 14),
+                 axis.title.y = element_text(size = 14),
                  legend.text = element_text(size = 14),
                  legend.title = element_text(size = 16, face = "bold"),
                  legend.position = c(0.5, 0.8),

@@ -139,25 +139,25 @@ p_map_2020 <- mining_data %>%
   ggplot2::scale_fill_manual(values = c(viridis::viridis(5, direction = -1), "white"), 
                              labels = c("0 to 10", "10 to 100", "100 to 1,000", "1,000 to 10,000", "10,000 to 41,327", "No mining")) +
   ggplot2::geom_sf(data = base_sta , fill = NA, lwd = 0.6) +
-  ggplot2::geom_sf(data = legal_amazon , fill = NA, colour = "red", alpha = 0.5, lwd = 0.3) +
-  ggplot2::geom_sf(data = minas_gerais , fill = NA, colour = "red", alpha = 0.5, lwd = 0.3) +
+  ggplot2::geom_sf(data = legal_amazon , fill = NA, colour = "red", alpha = 0.7, lwd = 0.5) +
+  ggplot2::geom_sf(data = minas_gerais , fill = NA, colour = "red", alpha = 0.7, lwd = 0.5) +
   ggplot2::coord_sf(xlim = lim$x_lim[[1]], ylim = lim$y_lim[[1]], expand = 0) +
   ggplot2::geom_curve(aes(
     xend = -49.903966184516804, x = -46,
     yend = 1.6296791814468312, y = 1.0998414027864398), 
-    curvature = 0.2, size = 0.4, arrow = arrow(length = unit(0.005, "npc")), colour = "black") +
+    curvature = 0.2, size = 0.6, arrow = arrow(length = unit(0.005, "npc")), colour = "black") +
   ggplot2::geom_curve(aes(
     xend = -49.903966184516804, x = -46,
     yend = 1.6296791814468312, y = 1.0998414027864398), 
-    curvature = 0.2, size = 0.2, arrow = arrow(length = unit(0.005, "npc")), colour = "red") +
+    curvature = 0.2, size = 0.4, arrow = arrow(length = unit(0.005, "npc")), colour = "red") +
   ggplot2::geom_curve(aes(
     xend = -45.27609797823044, x = -45.27609797823044,
     yend = -22.61750495298117, y = -26.800678103403406), 
-    curvature = -0.1, size = 0.4, arrow = arrow(length = unit(0.005, "npc")), colour = "black") +
+    curvature = -0.1, size = 0.6, arrow = arrow(length = unit(0.005, "npc")), colour = "black") +
   ggplot2::geom_curve(aes(
     xend = -45.27609797823044, x = -45.27609797823044,
     yend = -22.61750495298117, y = -26.800678103403406), 
-    curvature = -0.1, size = 0.2, arrow = arrow(length = unit(0.005, "npc")), colour = "red") +
+    curvature = -0.1, size = 0.4, arrow = arrow(length = unit(0.005, "npc")), colour = "red") +
   geom_text(aes(x = -46, y = 1.0998414027864398, label = "Legal Amazon"),
             nudge_x = 0.4, nudge_y = -0.3, hjust = 0, color = "black", size = 7) +
   geom_text(aes(x = -44.8, y = -26.800678103403406, label = "Minas Gerais"),
@@ -265,17 +265,31 @@ ggplot2::ggsave("figure_1.png",
                 scale = 1, width = 600, height = 250, units = "mm")
 
 
-# for presentation --------------------------------------------------------
-
-if (!dir.exists("figures/presentations")){dir.create("figures/presentations", recursive = TRUE)}
-
-ggplot2::ggsave("figure_1a.png",
-                plot = p_map_2020, device = "png",
-                path = paste0("./figures/presentations"),
-                scale = 1, width = 250, height = 250, units = "mm")
-
-ggplot2::ggsave("figure_1b.png",
-                plot = p_map_growth, device = "png",
-                path = paste0("./figures/presentations"),
-                scale = 1, width = 250, height = 250, units = "mm")
+# # for presentation --------------------------------------------------------
+# 
+# if (!dir.exists("figures/presentations")){dir.create("figures/presentations", recursive = TRUE)}
+# 
+# ggplot2::ggsave("figure_1a.png",
+#                 plot = p_map_2020, device = "png",
+#                 path = paste0("./figures/presentations"),
+#                 scale = 1, width = 250, height = 250, units = "mm")
+# 
+# ggplot2::ggsave("figure_1b.png",
+#                 plot = p_map_growth, device = "png",
+#                 path = paste0("./figures/presentations"),
+#                 scale = 1, width = 250, height = 250, units = "mm")
+# 
+# 
+# # for thesis --------------------------------------------------------------
+# 
+# p_maps <- cowplot::plot_grid(p_map_2020, p_map_growth, nrow = 1, rel_widths = c(1/2, 1/2), labels = c("A", "B"), label_size = 20) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# p_bars <- cowplot::plot_grid(p_ts_region, p_ts_type, nrow = 2, rel_heights = c(1/2, 1/2), labels = c("C", "D"), label_size = 20) +
+#   theme(plot.background = element_rect(fill = "white", colour = NA))
+# p_mining <- cowplot::plot_grid(p_maps, p_bars, labels = c('', ''), rel_widths = c(3/4, 1/4), nrow = 1)
+# 
+# ggplot2::ggsave("figure_1.png",
+#                 plot = p_mining, device = "png",
+#                 path = paste0("./figures/thesis"),
+#                 scale = 1, width = 600, height = 250, units = "mm")
 

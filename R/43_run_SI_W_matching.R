@@ -1,10 +1,21 @@
 
+library(dplyr)
+library(MASS)
+library(expm)
+library(Matrix)
+library(matrixcalc)
+library(fastDummies)
+library(spdep)
 
 # set k in k-nearest spatial weights matrix, main model uses k=5, alternatives use k = 4, 7, 10 
 knn_alternatives <- c(4, 7, 10) 
 
+mining_types <- c("industrial", "garimpo")
+matching_model <- "baseline"
 
 # prepare data ------------------------------------------------------------
+
+for(mining_type in mining_types){
 
 for (i in seq_along(knn_alternatives)){
   
@@ -13,20 +24,26 @@ for (i in seq_along(knn_alternatives)){
   to_yr <- 2015 # set end year of panel minus window_yrs, main model uses 2020-5 = 2015
   knn_set <- knn_alternatives[i] # set k for k-nearest neighbours weights matrix
   
-  if(! file.exists("data/full_data_2000-2020_5y.csv")){source("R/00_compile_data.R")}
-  M <- read.csv2(file = "data/full_data_2000-2020_5y.csv", sep = ",", stringsAsFactors = FALSE) # read full data matrix
-  M <- M %>% dplyr::mutate_at(c(4:121), as.numeric)
+  # read matched data
+  M_matched_industrial <- read.csv(paste0("data/cem/cem_results/cem_", matching_model, "_data_industrial_", from_yr, "-", to_yr+window_yrs, "_", window_yrs, "y.csv"))
+  M_matched_garimpo <- read.csv(paste0("data/cem/cem_results/cem_", matching_model, "_data_garimpo_", from_yr, "-", to_yr+window_yrs, "_", window_yrs, "y.csv"))
   
-  # filter to selected years (e.g. 2005-2015 covers data up to 2020 due to 5-year growth windows)
-  M <- M %>% dplyr::filter(year %in% c(from_yr:to_yr))
+  # count municipalities for mention in manuscript text
+  length(unique(M_matched_industrial$cod_municipio_long))
+  length(unique(M_matched_garimpo$cod_municipio_long))
   
-  # filter to balanced panel
-  check <- M %>% dplyr::group_by(cod_municipio_long) %>% dplyr::summarise(n = n()) %>%
-    dplyr::filter(n == length(unique(M$year)))
-  M <- M %>% dplyr::filter(cod_municipio_long %in% check$cod_municipio_long)
+  # filter to balanced panels
+  check <- M_matched_industrial %>% dplyr::group_by(cod_municipio_long) %>% dplyr::summarise(n = n()) %>%
+    dplyr::filter(n == length(unique(M_matched_industrial$year)))
+  M_matched_industrial <- M_matched_industrial %>% dplyr::filter(cod_municipio_long %in% check$cod_municipio_long)
+  
+  check <- M_matched_garimpo %>% dplyr::group_by(cod_municipio_long) %>% dplyr::summarise(n = n()) %>%
+    dplyr::filter(n == length(unique(M_matched_garimpo$year)))
+  M_matched_garimpo <- M_matched_garimpo %>% dplyr::filter(cod_municipio_long %in% check$cod_municipio_long)
   
   # check if there is any NA left in the panel
-  sum(is.na(M))
+  sum(is.na(M_matched_industrial))
+  sum(is.na(M_matched_garimpo))
   
   
   # prepare estimation ------------------------------------------------------
@@ -37,7 +54,7 @@ for (i in seq_along(knn_alternatives)){
   nretain = ntot - nburn
   t <- length(c(from_yr:to_yr))
   
-  source("./R/11_lndetPaceBarry.R")
+  source("./R/21_lndetPaceBarry.R")
   
   # inverse gamma prior for sigma
   a_pr <- 0.01
@@ -48,48 +65,81 @@ for (i in seq_along(knn_alternatives)){
   
   beta_prob = function(rho,a) 1/beta(a,a) * ((1+rho)^(a-1) *(1-rho)^(a-1))/(2^(2*a - 1))
   
-  # spatial weights matrix
-  if(! file.exists(paste0("./data/W/W_k", knn_set, ".RData"))){
+  # spatial weights matrix --------------------------------------------------
+  
+  if (mining_type == "industrial"){
     
-    library(spdep)
+    if(! file.exists(paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_industrial_", window_yrs, "y.RData"))){
+      
+      if(!file.exists(paste0("data/raw/geobr/base_mun_2015.gpkg"))){source("R/01_base_maps.R")}
+      base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
+      
+      # subset to relevant municipalities and order in the same way as Y and X
+      W_base <- base_mun %>%
+        dplyr::filter(code_muni %in% unique(M_matched_industrial$cod_municipio_long)) %>%
+        dplyr::arrange(code_muni)
+      
+      # Create W matrix: neighbours (see https://cran.r-project.org/web/packages/spdep/vignettes/nb_sf.html
+      coords_sf <-  sf::st_coordinates(sf::st_centroid(W_base))
+      W_k <- spdep::knearneigh(coords_sf, k = knn_set)
+      knear_nb <- spdep::knn2nb(W_k)
+      W_k <- spdep::nb2mat(knear_nb)
+      
+      save(W_k, file = paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_industrial_", window_yrs, "y.RData"))
+    } else {load(paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_industrial_", window_yrs, "y.RData"))}
     
-    if(!file.exists(paste0("data/raw/geobr/base_mun_2015.gpkg"))){source("R/01_base_maps.R")}
-    base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
+  } else {
     
-    # subset to relevant municipalities and order in the same way as Y and X
-    W_base <- base_mun %>%
-      dplyr::filter(code_muni %in% unique(M$cod_municipio_long)) %>%
-      dplyr::arrange(code_muni)
+    if(! file.exists(paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_garimpo_", window_yrs, "y.RData"))){
+      
+      if(!file.exists(paste0("data/raw/geobr/base_mun_2015.gpkg"))){source("R/01_base_maps.R")}
+      base_mun <- sf::read_sf("data/raw/geobr/base_mun_2015.gpkg")
+      
+      # subset to relevant municipalities and order in the same way as Y and X
+      W_base <- base_mun %>%
+        dplyr::filter(code_muni %in% unique(M_matched_garimpo$cod_municipio_long)) %>%
+        dplyr::arrange(code_muni)
+      
+      # Create W matrix: neighbours (see https://cran.r-project.org/web/packages/spdep/vignettes/nb_sf.html
+      coords_sf <-  sf::st_coordinates(sf::st_centroid(W_base))
+      W_k <- spdep::knearneigh(coords_sf, k = knn_set)
+      knear_nb <- spdep::knn2nb(W_k)
+      W_k <- spdep::nb2mat(knear_nb)
+      
+      save(W_k, file = paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_garimpo_", window_yrs, "y.RData"))
+    } else {load(paste0("./data/W/W_k", knn_set, "_matching_", matching_model, "_garimpo_", window_yrs, "y.RData"))}
     
-    # Create W matrix: neighbours (see https://cran.r-project.org/web/packages/spdep/vignettes/nb_sf.html
-    coords_sf <-  sf::st_coordinates(sf::st_centroid(W_base))
-    W_k <- spdep::knearneigh(coords_sf, k = knn_set)
-    knear_nb <- spdep::knn2nb(W_k)
-    W_k <- spdep::nb2mat(knear_nb)
-    
-    save(W_k, file = paste0("./data/W/W_k", knn_set, ".RData"))
-  } else {load(paste0("./data/W/W_k", knn_set, ".RData"))}
+  }
+  
   WW <- kronecker(.sparseDiagonal(t), W_k)
   
   
   
   # loop over models --------------------------------------------------------
   
-  m_dat <- c("YX_gdp_pooled_2005-2015_5y.csv", "YX_gdp_yearly_2005-2015_5y.csv",
-             "YX_def_rel_pooled_2005-2015_5y.csv", "YX_def_rel_yearly_2005-2015_5y.csv",
-             "YX_def_abs_pooled_2005-2015_5y.csv", "YX_def_abs_yearly_2005-2015_5y.csv")
+  m_dat <- c(paste0("YX_gdp_pooled_", mining_type, "_baseline_2005-2015_5y.csv"),
+             paste0("YX_gdp_yearly_", mining_type, "_baseline_2005-2015_5y.csv"),
+             paste0("YX_rel_pooled_", mining_type, "_baseline_2005-2015_5y.csv"),
+             paste0("YX_rel_yearly_", mining_type, "_baseline_2005-2015_5y.csv"),
+             paste0("YX_abs_pooled_", mining_type, "_baseline_2005-2015_5y.csv"),
+             paste0("YX_abs_yearly_", mining_type, "_baseline_2005-2015_5y.csv"))
   
   for (m in m_dat){
     
     cat("\n", m, "...")
     
     # read data
-    YX <- read.csv2(file = paste0("./data/model_input/", m), sep = ",", stringsAsFactors = FALSE) %>% mutate_all(as.numeric)
+    YX <- read.csv2(file = paste0("./data/cem/cem_model_input/", m), sep = ",", stringsAsFactors = FALSE) %>% mutate_all(as.numeric)
     Y <- YX %>% dplyr::select(1) %>% as.matrix()
     X <- YX %>% dplyr::select(-1) %>% as.matrix()
     
     # make dummies out of year column and then remove this column 
-    D <- dummies::dummy(X[,"year"], sep = "_")[,-1]
+    if(mining_type == "industrial"){
+      D <- fastDummies::dummy_cols( M_matched_industrial %>% dplyr::select(year), select_columns = "year")[,-c(1:2)]  %>% as.matrix()
+    } else {
+      D <- fastDummies::dummy_cols( M_matched_garimpo %>% dplyr::select(year), select_columns = "year")[,-c(1:2)]  %>% as.matrix()
+    }
+    
     X <- X[, colnames(X) != "year"]
     k_small <- ncol(X)  # no. of covariates excluding spatial lag (needed later for impact calculations)
     X <- cbind(1, X, WW %*% X, D) # construct SDM design matrix
@@ -176,9 +226,22 @@ for (i in seq_along(knn_alternatives)){
                   "sigma2_store" = sigma2_store, 
                   "rho_store" = rho_store)
     
-    save(store, file = paste0("data/intermediary/MCMC_draws/SI/", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", Sys.time(), ".Rdata"))
+    save(store, file = paste0("data/intermediary/MCMC_draws_matching/SI/", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", Sys.time(), ".Rdata"))
+    
     
     var_names <- c("int", colnames(X)[c(2:(k_small+1))], paste0("W", colnames(X)[c((k_small+2):(1+k_small*2))]), colnames(X)[(k_small*2+2):ncol(X)])
+    
+    # # check draws
+    # coef_summary <- cbind(var_names, colMeans(coef_store))
+    # coef_summary <- cbind(coef_summary, t(apply( coef_store , 2 , quantile , probs = c(0.01, 0.05, 0.95, 0.99) , na.rm = TRUE )))[,c(1, 3, 4, 2, 5, 6)]
+    # colnames(coef_summary)[c(1, 4)] <- c("Variable", "Mean")
+    # coef_summary
+    # 
+    # plot((rho_store), type = "l")
+    # plot((density(rho_store)))
+    # plot(coef_store[,1], type="l")
+    # plot(density(coef_store[,6]))
+    
     
     # calculate impacts -------------------------------------------------------
     
@@ -226,7 +289,7 @@ for (i in seq_along(knn_alternatives)){
     
     
     store_impacts <- list(direct_store, total_store, indirect_store)
-    save(store_impacts, file = paste0("data/impact_estimates/draws/SI/impacts_", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", Sys.time(), ".Rdata"))
+    save(store_impacts, file = paste0("data/cem/sdm_impact_estimates/draws/SI/impacts_", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", Sys.time(), ".Rdata"))
     
     # summarise impacts
     impact_summary <- cbind(colnames(X)[c(2:(k_small+1))], 
@@ -244,7 +307,7 @@ for (i in seq_along(knn_alternatives)){
                                   "Direct 1%", "Direct 2.5%", "Direct 5%", "Direct Mean", "Direct 95%", "Direct 97.5%", "Direct 99%", 
                                   "Indirect 1%", "Indirect 2.5%", "Indirect 5%", "Indirect Mean", "Indirect 95%", "Indirect 97.5%", "Indirect 99%")
     
-    impact_summary <- rbind(impact_summary, c(c("Dependent variable: absolute forest loss (ha)"), rep(NA, 14)))
+    impact_summary <- rbind(impact_summary, c(c(substr(gsub("YX_", "", gsub("\\..*$","",m)), 1, 3)), rep(NA, 14)))
     
     rho_summary <- c(mean(store$rho_store), quantile(store$rho_store, probs = c(0.01, 0.025, 0.05, 0.95, 0.975, 0.99)) )
     rho_summary <- rho_summary[c(2, 3, 4, 1, 5, 6, 7)]
@@ -252,11 +315,10 @@ for (i in seq_along(knn_alternatives)){
     impact_summary <- rbind(impact_summary, c("Rho:",  rho_summary, rep(NA, 7)))
     
     # save as Excel
-    write.csv(impact_summary, file = paste0("data/impact_estimates/summaries/SI/", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", ntot, "draws_", Sys.time(), ".csv"), row.names = FALSE)
+    write.csv(impact_summary, file = paste0("data/cem/sdm_impact_estimates/summaries/SI/", gsub("YX_", "", gsub("\\..*$","",m)), "_W", knn_set, "_", ntot, "draws_", Sys.time(), ".csv"), row.names = FALSE)
     
   }
-  
-  
-  
 }
+}
+
 
