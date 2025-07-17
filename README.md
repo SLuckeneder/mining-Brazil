@@ -1,6 +1,6 @@
 # Brazilian mining impacts - A Bayesian Spatial Durbin Model
 
-This repository contains the R scripts and data to reproduce results from "Forest loss and uncertain economic gains from industrial and garimpo mining in Brazilian municipalities". 
+This repository contains the R scripts and data to reproduce results from the research article "Forest loss and uncertain economic gains from industrial and garimpo mining in Brazilian municipalities" by Luckeneder, S., Maus, V., Siqueira-Gay, J., Krisztin, T. and Kuhn, M., _Nature Communications_ **16**, 6543 (2025). https://doi.org/10.1038/s41467-025-61930-8
 
 ## Usage
 
